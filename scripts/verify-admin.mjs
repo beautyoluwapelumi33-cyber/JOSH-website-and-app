@@ -111,7 +111,7 @@ async function waitForHealth(deadlineMs = 25_000) {
 }
 
 async function main() {
-  await new Promise((resolve) => stubNode.listen(RPC_PORT, '127.0.0.1', resolve));
+  await new Promise((resolve) => stubNode.listen(RPC_PORT, '0.0.0.0', resolve));
 
   const server = spawn(process.execPath, ['server/index.js'], {
     cwd: ROOT,
