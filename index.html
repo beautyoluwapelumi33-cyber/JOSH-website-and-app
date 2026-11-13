@@ -144,6 +144,12 @@ body{padding-bottom:calc(var(--josh-tabbar) + env(safe-area-inset-bottom,0px))}
 .me-row:hover{background:#f9f9f9}
 .me-row svg{flex:0 0 auto}
 .me-row .me-chev{margin-left:auto;color:#606060;font-weight:700}
+/* Account access: sign in and create account (Android app style). */
+.auth-tabs{display:flex;gap:8px;margin:16px 0 0}
+.auth-tab{flex:1 1 0;background:#f2f2f2;color:#0f0f0f;border-radius:10px;padding:11px;font-size:14px;font-weight:600}
+.auth-tab.active{background:#0f0f0f;color:#ffffff}
+#signinForm,#signupForm{margin-top:12px}
+.auth-error{color:#c81e3c}
 @media(max-width:999px){.yt-nav.open{inset:56px 0 calc(var(--josh-tabbar) + env(safe-area-inset-bottom,0px)) 0}}
 @media(min-width:1000px){.josh-tabbar{left:50%;right:auto;transform:translateX(-50%);width:min(560px,100%);border:1px solid #e5e5e5;border-bottom:0;border-radius:16px 16px 0 0;box-shadow:0 -2px 14px rgba(0,0,0,.08)}}
 @media(max-width:600px){.header-actions .secondary{display:none}.header-actions .primary{display:none}.shorts-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -185,7 +191,7 @@ body{padding-bottom:calc(var(--josh-tabbar) + env(safe-area-inset-bottom,0px))}
   </button>
   <button class="secondary" id="shareJoshBtn" type="button" onclick="openShareDialog()">Share JOSH</button>
   <button class="primary" type="button" onclick="showPage('upload')">+ Create</button>
-  <span class="yt-avatar-btn" aria-hidden="true">J</span>
+  <button class="yt-avatar-btn" type="button" id="ytAvatarBtn" aria-label="Account and profile" onclick="openMeTab()">J</button>
  </div>
 </header>
 
@@ -418,10 +424,37 @@ body{padding-bottom:calc(var(--josh-tabbar) + env(safe-area-inset-bottom,0px))}
  <div class="me-head">
   <span class="yt-avatar" aria-hidden="true">J</span>
   <div>
-   <strong>JOSH viewer</strong>
-   <p class="muted" style="margin:2px 0 0">Browsing on this device \u00b7 Not signed in</p>
+   <strong id="meName">JOSH viewer</strong>
+   <p class="muted" id="meEmail" style="margin:2px 0 0">Not signed in \u00b7 Browsing on this device</p>
   </div>
  </div>
+
+ <!-- Signed out: real sign-in and create-account forms wired to /api/auth. -->
+ <div id="meSignedOut">
+  <div class="auth-tabs" role="tablist" aria-label="Account access">
+   <button class="auth-tab active" type="button" role="tab" aria-selected="true" data-auth-tab="signin" onclick="showAuthTab('signin')">Sign in</button>
+   <button class="auth-tab" type="button" role="tab" aria-selected="false" data-auth-tab="signup" onclick="showAuthTab('signup')">Create account</button>
+  </div>
+  <form class="panel" id="signinForm" novalidate>
+   <label for="signinEmail">Email address</label>
+   <input id="signinEmail" type="email" name="email" placeholder="you@example.com" autocomplete="username">
+   <label for="signinPassword">Password</label>
+   <input id="signinPassword" type="password" name="password" placeholder="Your password" autocomplete="current-password">
+   <button class="primary" type="submit">Sign in</button>
+  </form>
+  <form class="panel hidden" id="signupForm" novalidate>
+   <label for="signupName">Display name</label>
+   <input id="signupName" type="text" name="displayName" placeholder="Optional" autocomplete="name">
+   <label for="signupEmail">Email address</label>
+   <input id="signupEmail" type="email" name="email" placeholder="you@example.com" autocomplete="username">
+   <label for="signupPassword">Password</label>
+   <input id="signupPassword" type="password" name="password" placeholder="At least 8 characters" autocomplete="new-password">
+   <button class="primary" type="submit">Create account</button>
+   <p class="muted">Passwords are hashed on the server. JOSH never stores your password in the browser.</p>
+  </form>
+  <p class="share-status" id="authStatus" role="status" aria-live="polite"></p>
+ </div>
+
  <div class="me-list">
   <button class="me-row" type="button" onclick="showPage('creator',this)">
    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="m10 9 5 3-5 3z" fill="currentColor"/></svg>Creator Studio<span class="me-chev" aria-hidden="true">\u203a</span>
@@ -442,6 +475,7 @@ body{padding-bottom:calc(var(--josh-tabbar) + env(safe-area-inset-bottom,0px))}
    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Admin<span class="me-chev" aria-hidden="true">\u203a</span>
   </button>
  </div>
+ <button class="secondary hidden" id="meSignOut" type="button" onclick="signOut()">Sign out</button>
 </section>
 
 </main>
@@ -529,6 +563,125 @@ function openAddTab(btn){
  var field=document.getElementById('videoTitle');
  if(field)setTimeout(function(){try{field.focus();}catch(err){}},60);
 }
+
+/* Account: sign in and create account against the JOSH backend (/api/auth). */
+function openMeTab(){
+ var tab=document.querySelector('.josh-tab[data-tab="me"]');
+ showPage('me',tab);
+}
+
+function authNote(message,isError){
+ var el=document.getElementById('authStatus');
+ if(!el)return;
+ el.textContent=message||'';
+ el.className='share-status'+(isError?' auth-error':'');
+}
+
+function showAuthTab(which){
+ var signin=document.getElementById('signinForm');
+ var signup=document.getElementById('signupForm');
+ if(signin)signin.classList.toggle('hidden',which!=='signin');
+ if(signup)signup.classList.toggle('hidden',which!=='signup');
+ document.querySelectorAll('.auth-tab').forEach(function(t){
+  var on=t.getAttribute('data-auth-tab')===which;
+  t.classList.toggle('active',on);
+  t.setAttribute('aria-selected',on?'true':'false');
+ });
+ authNote('');
+}
+
+function setSignedIn(user){
+ var signedOut=document.getElementById('meSignedOut');
+ var signOutBtn=document.getElementById('meSignOut');
+ var name=document.getElementById('meName');
+ var email=document.getElementById('meEmail');
+ if(user){
+  if(name)name.textContent=user.displayName||user.email||'JOSH member';
+  if(email)email.textContent=(user.email||'')+(user.role?' \u00b7 '+user.role:'');
+  if(signedOut)signedOut.classList.add('hidden');
+  if(signOutBtn)signOutBtn.classList.remove('hidden');
+  if(user.role==='admin'){
+   document.querySelectorAll('[data-admin-entry]').forEach(function(el){el.classList.remove('hidden');});
+  }
+ }else{
+  if(name)name.textContent='JOSH viewer';
+  if(email)email.textContent='Not signed in \u00b7 Browsing on this device';
+  if(signedOut)signedOut.classList.remove('hidden');
+  if(signOutBtn)signOutBtn.classList.add('hidden');
+ }
+}
+
+async function authRequest(path,payload){
+ var response=await fetch('/api/auth/'+path,{
+  method:'POST',
+  credentials:'include',
+  headers:{'Content-Type':'application/json',Accept:'application/json'},
+  body:JSON.stringify(payload||{})
+ });
+ var type=response.headers.get('content-type')||'';
+ var data=type.indexOf('application/json')>=0?await response.json().catch(function(){return null;}):null;
+ return {ok:response.ok,status:response.status,data:data};
+}
+
+function authMessage(result,fallback){
+ var data=result&&result.data;
+ if(data&&data.error&&data.error.message)return data.error.message;
+ if(data&&data.message)return data.message;
+ return fallback;
+}
+
+async function refreshSession(){
+ try{
+  var response=await fetch('/api/auth/me',{credentials:'include',headers:{Accept:'application/json'}});
+  if(!response.ok)return;
+  var data=await response.json().catch(function(){return null;});
+  setSignedIn(data&&data.user?data.user:null);
+ }catch(err){/* the API is not served by this build */}
+}
+
+async function signOut(){
+ try{await authRequest('logout',{});}catch(err){}
+ setSignedIn(null);
+ authNote('Signed out.');
+}
+
+(function bindAuthForms(){
+ var signin=document.getElementById('signinForm');
+ var signup=document.getElementById('signupForm');
+ if(signin){
+  signin.addEventListener('submit',async function(event){
+   event.preventDefault();
+   var email=(signin.querySelector('input[name="email"]').value||'').trim();
+   var password=signin.querySelector('input[name="password"]').value||'';
+   if(!email||!password){authNote('Enter your email and password.',true);return;}
+   authNote('Signing in\u2026');
+   try{
+    var result=await authRequest('login',{email:email,password:password});
+    if(!result.ok){authNote(authMessage(result,'Sign-in failed. Check your email and password.'),true);return;}
+    setSignedIn(result.data&&result.data.user);
+    signin.reset();
+   }catch(err){authNote('Sign-in needs the JOSH backend, which this build is not serving.',true);}
+  });
+ }
+ if(signup){
+  signup.addEventListener('submit',async function(event){
+   event.preventDefault();
+   var name=signup.querySelector('input[name="displayName"]').value||'';
+   var email=(signup.querySelector('input[name="email"]').value||'').trim();
+   var password=signup.querySelector('input[name="password"]').value||'';
+   if(!email||password.length<8){authNote('Enter an email and a password of at least 8 characters.',true);return;}
+   authNote('Creating your account\u2026');
+   try{
+    var result=await authRequest('register',{email:email,password:password,displayName:name});
+    if(!result.ok){authNote(authMessage(result,'Account could not be created.'),true);return;}
+    setSignedIn(result.data&&result.data.user);
+    signup.reset();
+   }catch(err){authNote('Account creation needs the JOSH backend, which this build is not serving.',true);}
+  });
+ }
+})();
+
+refreshSession();
 
 function toggleSidebar(){
  var side=document.getElementById('ytNav');
