@@ -147,7 +147,8 @@ if (canonicalHref && canonicalHref !== ogUrl) {
 }
 
 // 5. Admin stays private.
-if (/<button[^>]*data-admin-entry[^>]*onclick="showPage\('admin',this\)"[\s\S]{0,400}?Admin<\/button>/.test(indexHtml)) {
+const adminSidebar = (/<aside class="yt-nav"[\s\S]*?<\/aside>/.exec(indexHtml) || [''])[0];
+if (/data-admin-entry[^>]*onclick="showPage\('admin',this\)"/.test(adminSidebar) && /Admin/.test(adminSidebar)) {
   pass('The Admin entry sits in the YouTube-style sidebar navigation.');
 } else {
   fail('The Admin navigation entry is missing from the sidebar.');
