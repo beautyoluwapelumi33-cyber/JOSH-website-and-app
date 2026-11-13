@@ -125,6 +125,33 @@ function createUser({ email, password, displayName = '', role = 'creator' }) {
   return db.get('SELECT * FROM users WHERE id = ?', [id]);
 }
 
+/**
+ * Ensures an administrator account exists. Used by the create-admin script and by
+ * the boot-time bootstrap, so the website owner keeps administrator rights even
+ * when the database file is recreated (no persistent disk on the Free plan).
+ * Never accepts a role from a request body: only this server-side path grants it.
+ */
+function ensureAdmin({ email, password, displayName } = {}) {
+  const normalized = normalizeEmail(email);
+  if (!validEmail(normalized)) throw badRequest('invalid_email', 'Enter a valid administrator email address.');
+  const existing = db.get('SELECT * FROM users WHERE email = ?', [normalized]);
+  if (existing) {
+    const promoted = existing.role !== 'admin';
+    if (promoted) db.run('UPDATE users SET role = ? WHERE id = ?', ['admin', existing.id]);
+    return { user: db.get('SELECT * FROM users WHERE id = ?', [existing.id]), created: false, promoted };
+  }
+  if (String(password || '').length < 8) {
+    throw badRequest('weak_password', 'Administrator password must be at least 8 characters.');
+  }
+  const user = createUser({
+    email: normalized,
+    password,
+    displayName: displayName || 'JOSH Owner',
+    role: 'admin',
+  });
+  return { user, created: true, promoted: false };
+}
+
 function router() {
   const r = express.Router();
 
@@ -184,6 +211,7 @@ function router() {
 module.exports = {
   router,
   createUser,
+  ensureAdmin,
   publicUser,
   attachUser,
   requireAuth,

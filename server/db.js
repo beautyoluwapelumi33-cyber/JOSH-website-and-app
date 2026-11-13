@@ -141,6 +141,42 @@ CREATE TABLE IF NOT EXISTS settings (
   value TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
+
+/* Video records managed by the administrator. views/watch_seconds are only ever
+   incremented by real playback, never seeded with invented numbers. */
+CREATE TABLE IF NOT EXISTS videos (
+  id TEXT PRIMARY KEY,
+  user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  source_url TEXT,
+  thumbnail_url TEXT,
+  visibility TEXT NOT NULL DEFAULT 'public' CHECK (visibility IN ('public','unlisted','private')),
+  status TEXT NOT NULL DEFAULT 'published' CHECK (status IN ('published','hidden','removed')),
+  duration_seconds INTEGER NOT NULL DEFAULT 0,
+  views INTEGER NOT NULL DEFAULT 0,
+  watch_seconds INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS ix_videos_created ON videos(created_at);
+CREATE INDEX IF NOT EXISTS ix_videos_user ON videos(user_id);
+
+/* Livestream monitoring: one row per stream, state changes are real transitions. */
+CREATE TABLE IF NOT EXISTS livestreams (
+  id TEXT PRIMARY KEY,
+  user_id TEXT REFERENCES users(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled','live','ended','blocked')),
+  viewers INTEGER NOT NULL DEFAULT 0,
+  started_at TEXT,
+  ended_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS ix_livestreams_status ON livestreams(status);
 `;
 
 let SQL = null;
