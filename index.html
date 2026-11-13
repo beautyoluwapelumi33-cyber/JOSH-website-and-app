@@ -239,12 +239,21 @@ a{color:#ff6680}
  <h2>JOSH Administration</h2>
  <div class="panel">
   <h3>Private administrator access</h3>
-  <p class="muted">This dashboard requires secure server-side administrator authentication before deployment.</p>
-  <input type="email" placeholder="Administrator email">
-  <input type="password" placeholder="Administrator password">
-  <button class="primary" onclick="alert('Admin authentication is not connected yet. This demo cannot grant administrator access.')">Admin Login</button>
+  <p class="muted" id="adminStatus">This dashboard is private. Sign in with an administrator account — the public website never exposes administrator data.</p>
+  <form id="adminLoginForm">
+   <input type="email" name="email" placeholder="Administrator email" autocomplete="username">
+   <input type="password" name="password" placeholder="Administrator password" autocomplete="current-password">
+   <button class="primary" type="submit">Admin Login</button>
+  </form>
+  <p class="muted" id="adminLoginNote"></p>
  </div>
- <div class="panel">
+ <div class="panel" data-admin-panel hidden>
+  <h3>Publish &amp; sharing link</h3>
+  <p class="muted">The official public website link used by Share JOSH. It opens for everyone and needs no admin access.</p>
+  <div class="share-url">
+   <input id="adminPublishLink" readonly aria-label="Official publish and sharing link">
+   <button class="primary" type="button" onclick="copyPublishLink()">Copy</button>
+  </div>
   <h3>Platform management</h3>
   <div class="stats">
    <div class="stat">Users<strong>0</strong></div>
@@ -252,11 +261,27 @@ a{color:#ff6680}
    <div class="stat">Videos<strong>0</strong></div>
    <div class="stat">Ad revenue<strong>0 USDT</strong></div>
   </div>
-  <p class="muted">User management, advertising reports, creator moderation and payments will be connected through the private backend.</p>
+  <p class="muted">User management, advertising reports, creator moderation and payments are served by the private backend, never by public pages.</p>
  </div>
 </section>
 
 </main>
+
+<!-- Share JOSH: shares the official published website link from site-config.js. -->
+<div class="share-backdrop hidden" id="shareDialog" role="dialog" aria-modal="true" aria-labelledby="shareTitle" aria-hidden="true">
+ <div class="share-dialog">
+  <button class="share-close" type="button" onclick="closeShareDialog()" aria-label="Close share dialog">✕</button>
+  <h3 id="shareTitle">Share JOSH</h3>
+  <p class="muted" style="margin:0">Send the official JOSH website link to friends.</p>
+  <div class="share-url">
+   <input id="shareUrlField" readonly aria-label="Official JOSH website link">
+   <button class="primary" type="button" id="shareCopyBtn">Copy</button>
+  </div>
+  <div class="share-grid" id="shareTargets"></div>
+  <p class="share-note" id="shareNote"></p>
+  <p class="share-status" id="shareStatus" role="status" aria-live="polite"></p>
+ </div>
+</div>
 
 <footer>
  <div class="logo">▶ JOSH</div>
@@ -339,6 +364,87 @@ function searchVideos(){
  });
 }
 </script>
-</body>
+
+<script>
+/* Administrator area stays hidden on the public website. The entry appears only
+   for an authenticated administrator session (server-side role check) or when
+   the owner opens the site with ?admin=1 to reach the sign-in form. */
+(function(){
+ const entry=document.querySelector('[data-admin-entry]');
+ const panel=document.querySelector('[data-admin-panel]');
+ const form=document.getElementById('adminLoginForm');
+ const status=document.getElementById('adminStatus');
+ const note=document.getElementById('adminLoginNote');
+ const publishField=document.getElementById('adminPublishLink');
+
+ function officialLink(){return (window.JOSH_PUBLIC_URL||'').trim();}
+ function revealEntry(){if(entry)entry.classList.remove('hidden');}
+ function showNote(message){if(note)note.textContent=message||'';}
+
+ function unlockAdmin(user){
+  revealEntry();
+  if(panel)panel.hidden=false;
+  if(form)form.classList.add('hidden');
+  if(status)status.textContent='Signed in as '+((user&&user.email)||'administrator')+'.';
+  if(publishField)publishField.value=officialLink();
+  showNote('');
+ }
+
+ async function api(path,options){
+  const response=await fetch(path,Object.assign({credentials:'include',headers:{Accept:'application/json'}},options||{}));
+  const type=response.headers.get('content-type')||'';
+  const data=type.indexOf('application/json')>=0?await response.json().catch(()=>null):null;
+  return {response:response,data:data};
+ }
+
+ function errorMessage(result,fallback){
+  const data=result&&result.data;
+  if(data&&data.error&&data.error.message)return data.error.message;
+  if(data&&data.message)return data.message;
+  return fallback;
+ }
+
+ async function checkSession(){
+  try{
+   const result=await api('/api/auth/me');
+   const user=result.data&&result.data.user;
+   if(result.response.ok&&user&&user.role==='admin')unlockAdmin(user);
+  }catch(err){/* static build: the API is not part of this deployment */}
+ }
+
+ if(new URLSearchParams(location.search).get('admin')==='1')revealEntry();
+
+ if(form){
+  form.addEventListener('submit',async function(event){
+   event.preventDefault();
+   showNote('');
+   const email=(form.querySelector('input[name="email"]').value||'').trim();
+   const password=form.querySelector('input[name="password"]').value||'';
+   if(!email||!password){showNote('Enter the administrator email and password.');return;}
+   try{
+    const result=await api('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({email:email,password:password})});
+    if(!result.response.ok){showNote(errorMessage(result,'Sign-in failed. Check the administrator email and password.'));return;}
+    const user=result.data&&result.data.user;
+    if(!user||user.role!=='admin'){showNote('This account is not an administrator.');return;}
+    unlockAdmin(user);
+   }catch(err){
+    showNote('Administrator sign-in needs the JOSH backend, which this published build does not include yet.');
+   }
+  });
+ }
+
+ window.copyPublishLink=function(){
+  const value=officialLink();
+  if(!value){showNote('The official publish link is not configured yet.');return;}
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+   navigator.clipboard.writeText(value).then(function(){showNote('Publish link copied.');}).catch(function(){showNote(value);});
+   return;
+  }
+  showNote(value);
+ };
+
+ checkSession();
+})();
+</script>
   </html>
    
