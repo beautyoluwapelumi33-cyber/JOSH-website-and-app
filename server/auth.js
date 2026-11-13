@@ -160,6 +160,81 @@ function ensureAdmin({ email, password, displayName } = {}) {
   return { user, created: true, promoted: false };
 }
 
+/** Number of administrator accounts currently stored. */
+function adminCount() {
+  const row = db.get("SELECT COUNT(*) AS total FROM users WHERE role = 'admin'");
+  return row ? Number(row.total) : 0;
+}
+
+/**
+ * True only on an install that has no administrator yet. The dashboard uses this
+ * to offer the one-time owner setup form instead of a sign-in form nobody can pass.
+ */
+function needsOwnerSetup() {
+  return adminCount() === 0;
+}
+
+/**
+ * One-time owner claim. This is the only request-driven path that can grant the
+ * administrator role, and it stops working the moment an administrator exists.
+ * The owner supplies their own password; the server never generates or stores one.
+ */
+function claimOwner({ email, password, displayName } = {}) {
+  if (!needsOwnerSetup()) {
+    throw forbidden('An administrator already exists. Sign in with that account instead.');
+  }
+  if (String(password || '').length < 12) {
+    throw badRequest('weak_password', 'Choose an owner password of at least 12 characters.');
+  }
+  const user = createUser({
+    email,
+    password,
+    displayName: displayName || 'JOSH Owner',
+    // Granted here and only here; never taken from a request body.
+    role: 'admin',
+  });
+  audit({ actorId: user.id, action: 'owner.setup', target: user.id });
+  return user;
+}
+
+function setupRouter() {
+  const r = express.Router();
+
+  /* Public on purpose: it reveals only whether an administrator exists yet. */
+  r.get('/status', (_req, res) => res.json({ needsOwnerSetup: needsOwnerSetup() }));
+
+  r.post('/owner', (req, res, next) => {
+    try {
+      const key = `setup|${req.ip}`;
+      if (tooManyAttempts(key)) {
+        throw conflict('too_many_attempts', 'Too many attempts. Try again in a few minutes.');
+      }
+      if (!needsOwnerSetup()) {
+        recordFailure(key);
+        throw forbidden('An administrator already exists. Sign in with that account instead.');
+      }
+      let user;
+      try {
+        user = claimOwner({
+          email: req.body && req.body.email,
+          password: req.body && req.body.password,
+          displayName: req.body && req.body.displayName,
+        });
+      } catch (err) {
+        recordFailure(key);
+        throw err;
+      }
+      attempts.delete(key);
+      issueSession(user.id, req, res);
+      res.status(201).json({ user: publicUser(user) });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  return r;
+}
+
 function router() {
   const r = express.Router();
 
@@ -218,8 +293,12 @@ function router() {
 
 module.exports = {
   router,
+  setupRouter,
   createUser,
   ensureAdmin,
+  adminCount,
+  needsOwnerSetup,
+  claimOwner,
   publicUser,
   attachUser,
   requireAuth,

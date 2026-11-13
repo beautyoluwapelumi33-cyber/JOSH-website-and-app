@@ -155,9 +155,61 @@
     state.user = null;
     var panel = document.querySelector('[data-admin-panel]');
     var login = $('adminLoginPanel');
+    var setup = $('adminSetupPanel');
     if (panel) panel.hidden = true;
     if (login) login.hidden = false;
+    if (setup) setup.hidden = true;
     setText('adminStatus', 'This dashboard is private. Sign in with an administrator account — the public website never exposes administrator data.');
+    showOwnerSetupIfNeeded();
+  }
+
+  function setupNote(text, isError) {
+    var el = $('adminSetupNote');
+    if (!el) return;
+    el.textContent = text || '';
+    el.className = 'muted admin-note' + (isError ? ' auth-error' : '');
+  }
+
+  /* A fresh install has no administrator, so nobody could sign in at all. Offer
+     the one-time owner setup form; it disappears once an admin account exists. */
+  async function showOwnerSetupIfNeeded() {
+    var setup = $('adminSetupPanel');
+    var login = $('adminLoginPanel');
+    if (!setup || !login) return;
+    var result = await api('/api/setup/status');
+    if (!result.ok || !result.data || !result.data.needsOwnerSetup) return;
+    setup.hidden = false;
+    login.hidden = true;
+    setText('adminStatus', 'No administrator account exists yet. Create your owner account below to open the private dashboard.');
+  }
+
+  function initOwnerSetup() {
+    var form = $('adminSetupForm');
+    if (!form) return;
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      var email = String(form.email.value || '').trim();
+      var password = String(form.password.value || '');
+      var confirm = String(form.confirm.value || '');
+      if (password !== confirm) {
+        setupNote('The two passwords do not match.', true);
+        return;
+      }
+      if (password.length < 12) {
+        setupNote('Use at least 12 characters for the owner password.', true);
+        return;
+      }
+      setupNote('Creating your owner account…');
+      var result = await api('/api/setup/owner', { method: 'POST', body: { email: email, password: password } });
+      if (!result.ok) {
+        setupNote(message(result, 'Could not create the owner account.'), true);
+        return;
+      }
+      form.reset();
+      var user = result.data && result.data.user;
+      unlockAdmin(user);
+      adminNote('Owner account created. This dashboard is now private to administrators.');
+    });
   }
 
   function unlockAdmin(user) {
@@ -885,6 +937,7 @@
   function boot() {
     bindAdmin();
     bindWallet();
+    initOwnerSetup();
 
     var wantsAdmin = /(?:\?|&)admin=1(?:&|$)/.test(window.location.search);
     if (wantsAdmin) revealEntry();

@@ -150,6 +150,8 @@ async function createApp() {
 
   app.get('/api/health', (req, res) => res.json({ ok: true }));
   app.use('/api/auth', auth.router());
+  // One-time owner claim; refuses as soon as an administrator exists.
+  app.use('/api/setup', auth.setupRouter());
   app.use('/api/admin', adminRoutes.router());
   app.use('/api/creator', creatorRoutes.router());
   app.use('/api', creatorRoutes.publicRouter());
