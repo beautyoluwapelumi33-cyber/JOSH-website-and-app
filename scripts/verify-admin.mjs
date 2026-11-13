@@ -157,6 +157,21 @@ async function main() {
     check('anonymous GET /api/admin/users is rejected', (await request('/api/admin/users')).status === 401);
     check('anonymous GET /api/admin/withdrawals is rejected', (await request('/api/admin/withdrawals')).status === 401);
 
+    /* The one-time owner claim must be closed the moment an administrator exists. */
+    const setupStatus = await request('/api/setup/status');
+    check('setup status is readable', setupStatus.status === 200, `status ${setupStatus.status}`);
+    check(
+      'setup status reports that an administrator already exists',
+      setupStatus.json?.needsOwnerSetup === false,
+      `needsOwnerSetup was ${setupStatus.json?.needsOwnerSetup}`
+    );
+    const claimAttempt = await request('/api/setup/owner', {
+      method: 'POST',
+      body: { email: 'intruder@example.com', password: 'IntruderPass12345' },
+    });
+    check('owner claim is refused once an administrator exists', claimAttempt.status === 403, `status ${claimAttempt.status}`);
+    check('a refused claim creates no administrator', (await request('/api/auth/me')).status === 200);
+
     /* ------------------------------------------------------ creator account */
     const registration = await request('/api/auth/register', {
       method: 'POST',
