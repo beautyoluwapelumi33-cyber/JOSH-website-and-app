@@ -152,20 +152,42 @@ if (/<button data-admin-entry onclick="showPage\('admin',this\)">Admin<\/button>
 } else {
   fail('The Admin navigation entry does not match the original navigation.');
 }
-/* Design preservation: the original YouTube-style tokens must stay untouched. */
+/* Design preservation: YouTube-style layout tokens plus the white light theme. */
 [
-  ['body{margin:0;background:#0e1015;color:white;font-family:Arial,sans-serif}', 'the original dark theme, Arial font and text colours are unchanged'],
-  ['header{height:65px;background:#171a22', 'the original 65px header is unchanged'],
+  ['body{margin:0;background:#ffffff;color:#0f0f0f;font-family:Arial,sans-serif}', 'the white light theme, Arial font and dark text colours are in place'],
+  ['header{height:65px;background:#ffffff', 'the original 65px header is unchanged, now on a white surface'],
   ['.logo{font-size:27px;font-weight:900;color:#ff3155}', 'the original logo typography and colour are unchanged'],
   ['.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}', 'the original video feed grid is unchanged'],
-  ['.thumb{height:145px;background:linear-gradient(135deg,#343b57,#8c315a)', 'the original video thumbnails are unchanged'],
+  ['.thumb{height:145px;background:linear-gradient(135deg,#eef1f7,#f9dde5)', 'the original 145px video thumbnails are unchanged in the light palette'],
   ['.primary{background:#ff3155;color:white}', 'the original button styling is unchanged'],
-  ['nav button.active{background:#ff3155}', 'the original navigation styling is unchanged'],
-  ['main{padding:16px;max-width:1100px;margin:auto}', 'the original page spacing and width are unchanged']
+  ['nav button.active{background:#ff3155;color:#ffffff}', 'the original navigation styling is unchanged'],
+  ['main{padding:16px;max-width:1100px;margin:auto}', 'the original page spacing and width are unchanged'],
+  ['nav{display:flex;gap:8px;overflow-x:auto;background:#ffffff', 'the navigation bar is white with the original layout'],
+  ['.panel{background:#ffffff;border:1px solid #e5e5e5', 'panels and the sidebar are white with light grey borders'],
+  ['.card{background:#ffffff;border:1px solid #e5e5e5', 'video cards are white with light grey borders'],
+  ['.search{width:100%;padding:14px;border-radius:10px;border:1px solid #d9d9d9;background:#ffffff;color:#0f0f0f', 'the search bar keeps its layout on a white surface'],
+  ['input,textarea,select{background:#ffffff;border:1px solid #d9d9d9;color:#0f0f0f', 'form fields use white surfaces with dark text'],
+  ['.watch-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}', 'the video player page layout is unchanged'],
+  ['@media(min-width:900px){.watch-layout{grid-template-columns:minmax(0,1fr) 300px}}', 'the responsive 300px watch sidebar is unchanged'],
+  ['@media(max-width:899px){.ad-slot[data-ad-slot="videoSidebar"]{display:none!important}}', 'mobile ad behaviour is unchanged'],
+  ['footer{text-align:center;padding:30px;color:#606060;border-top:1px solid #e5e5e5;background:#ffffff}', 'the footer uses a white surface with a light grey separator']
 ].forEach(function(pair){
   if (indexHtml.indexOf(pair[0]) !== -1) pass('Design preserved: ' + pair[1] + '.');
   else fail('Design changed: ' + pair[1] + '.');
 });
+
+/* No dark-theme surfaces may survive anywhere in the page. */
+const darkTokens = ['#0e1015', '#171a22', '#1b1f29', '#20242e', '#252b38', '#292e39', '#343b57', '#343947', '#393e4a', '#444b5b', '#8c315a'];
+const remainingDark = darkTokens.filter(function(token){ return indexHtml.toLowerCase().indexOf(token) !== -1; });
+if (remainingDark.length === 0) pass('No dark-theme surface colours remain in the page.');
+else fail('Dark-theme colours are still present: ' + remainingDark.join(', ') + '.');
+
+/* Long videos: nothing may cap duration, so 3h+ playback stays possible. */
+if (!/maxduration|durationlimit|max_duration|maxLength\s*=\s*[\d]+\s*\*\s*60/i.test(indexHtml)) {
+  pass('No duration cap is applied, so 3-hour and longer videos remain supported.');
+} else {
+  fail('A duration cap was introduced, which would break 3-hour and longer videos.');
+}
 
 /* Logo: the single authorised visual change. */
 if ((indexHtml.match(/class="josh-mark"/g) || []).length >= 2) pass('The new JOSH logo mark is applied in the header and footer.');
