@@ -182,9 +182,13 @@ CREATE INDEX IF NOT EXISTS ix_livestreams_status ON livestreams(status);
 let SQL = null;
 let db = null;
 let dbFile = null;
+// sql.js cannot export a database while a transaction is open, so writes made
+// inside tx() must not persist until the commit succeeds.
+let inTransaction = false;
 
 function persist() {
   if (!db || !dbFile) return;
+  if (inTransaction) return;
   const tmp = `${dbFile}.tmp`;
   fs.writeFileSync(tmp, Buffer.from(db.export()));
   fs.renameSync(tmp, dbFile);
@@ -226,10 +230,14 @@ function run(sql, params = []) {
 
 /** Run several statements atomically; rolls back on any error. */
 function tx(fn) {
+  // Nested calls join the outer transaction instead of opening a second one.
+  if (inTransaction) return fn();
   db.run('BEGIN');
+  inTransaction = true;
   try {
     const result = fn();
     db.run('COMMIT');
+    inTransaction = false;
     persist();
     return result;
   } catch (err) {
@@ -238,6 +246,8 @@ function tx(fn) {
     } catch {
       /* rollback best effort */
     }
+    inTransaction = false;
+    persist();
     throw err;
   }
 }
