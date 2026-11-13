@@ -45,6 +45,14 @@ function clearEnv() {
   delete process.env.ADSENSE_PUBLISHER_ID;
 }
 
+/** The shipped files document examples inside HTML/`#` comments; ignore those. */
+const stripComments = (value) => String(value).replace(/<!--[\s\S]*?-->/g, '');
+const sellerLines = (value) =>
+  String(value)
+    .split('\n')
+    .filter((line) => !line.trim().startsWith('#'))
+    .join('\n');
+
 async function main() {
   clearEnv();
   const app = await createApp();
@@ -103,13 +111,13 @@ async function main() {
     const adsUnset = await get('/ads.txt');
     const adsUnsetBody = await adsUnset.text();
     check('/ads.txt is public over HTTPS-equivalent and text/plain', adsUnset.status === 200 && (adsUnset.headers.get('content-type') || '').includes('text/plain'));
-    check('unconfigured ads.txt claims no seller', !/google\.com,\s*pub-\d+/.test(adsUnsetBody));
+    check('unconfigured ads.txt claims no seller', !/google\.com,\s*pub-\d+/.test(sellerLines(adsUnsetBody)));
 
     process.env.ADSENSE_PUBLISHER_ID = PUBLISHER;
     const adsSet = await (await get('/ads.txt')).text();
     check(
       'configured ads.txt carries the real publisher line',
-      adsSet.includes(`google.com, pub-1234567890123456, DIRECT, f08c47fec0942fa0`)
+      sellerLines(adsSet).includes(`google.com, pub-1234567890123456, DIRECT, f08c47fec0942fa0`)
     );
 
     console.log('\nAdSense ownership verification');
@@ -122,8 +130,8 @@ async function main() {
     process.env.ADSENSE_PUBLISHER_ID = 'ca-pub-XXXXXXXXXXXXXXXX';
     const invalid = await (await get('/')).text();
     const invalidAds = await (await get('/ads.txt')).text();
-    check('an invalid publisher ID injects nothing', !invalid.includes('name="google-adsense-account" content="ca-pub-XXXXXXXXXXXXXXXX"'));
-    check('an invalid publisher ID writes no ads.txt seller line', !/google\.com,\s*pub-X/i.test(invalidAds));
+    check('an invalid publisher ID injects nothing', !stripComments(invalid).includes('name="google-adsense-account" content="ca-pub-XXXXXXXXXXXXXXXX"'));
+    check('an invalid publisher ID writes no ads.txt seller line', !/google\.com,\s*pub-/i.test(sellerLines(invalidAds)));
 
     console.log('\nPublic access and privacy');
     check('homepage is public without a session', (await get('/')).status === 200);
