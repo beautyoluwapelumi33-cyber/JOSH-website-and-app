@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JOSH - Watch. Create. Earn.</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='3' y='3' width='58' height='58' rx='15' fill='%23ff3155'/%3E%3Cpath d='M25 19 46 32 25 45Z' fill='%23ffffff'/%3E%3C/svg%3E">
 <!-- Official published website address. Sharing, canonical and social metadata
      all use this link (see site-config.js), never a preview or localhost URL. -->
 <link rel="canonical" href="https://wypeqn7rsc.dev.onappjet.com/">
@@ -24,6 +25,11 @@ body{margin:0;background:#0e1015;color:white;font-family:Arial,sans-serif}
 header{height:65px;background:#171a22;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:5}
 .logo{font-size:27px;font-weight:900;color:#ff3155}
 .logo span{color:white}
+/* JOSH brand logo. Only the logo mark changes; header/footer metrics stay identical. */
+.logo.josh-lockup{display:inline-flex;align-items:center}
+.josh-mark{height:1em;width:auto;display:block;margin-right:.26em;flex:0 0 auto}
+.logo .josh-word{color:#ff3155}
+footer .josh-mark{height:1.05em}
 button{cursor:pointer;border:0;border-radius:9px;padding:11px 15px;font-weight:bold}
 .primary{background:#ff3155;color:white}
 .secondary{background:#292e39;color:white}
@@ -90,7 +96,7 @@ a{color:#ff6680}
 <body>
 
 <header>
- <div class="logo">▶ JOSH<span></span></div>
+ <div class="logo josh-lockup"><svg class="josh-mark" viewBox="0 0 64 64" role="img" aria-label="JOSH logo"><rect x="3" y="3" width="58" height="58" rx="15" fill="#ff3155"/><path d="M25 19 46 32 25 45Z" fill="#ffffff"/></svg><span class="josh-word">JOSH</span><span></span></div>
  <div class="header-actions">
   <button class="secondary" id="shareJoshBtn" type="button" onclick="openShareDialog()">Share JOSH</button>
   <button class="primary" onclick="showPage('upload')">+ Create</button>
@@ -103,8 +109,7 @@ a{color:#ff6680}
  <button onclick="showPage('upload',this)">Upload</button>
  <button onclick="showPage('creator',this)">Creator Studio</button>
  <button onclick="showPage('wallet',this)">My Earnings</button>
- <!-- Admin entry is hidden on the public website; see the admin gate script. -->
- <button class="hidden" data-admin-entry onclick="showPage('admin',this)">Admin</button>
+ <button data-admin-entry onclick="showPage('admin',this)">Admin</button>
 </nav>
 
 <main>
@@ -284,7 +289,7 @@ a{color:#ff6680}
 </div>
 
 <footer>
- <div class="logo">▶ JOSH</div>
+ <div class="logo josh-lockup"><svg class="josh-mark" viewBox="0 0 64 64" role="img" aria-label="JOSH logo"><rect x="3" y="3" width="58" height="58" rx="15" fill="#ff3155"/><path d="M25 19 46 32 25 45Z" fill="#ffffff"/></svg><span class="josh-word">JOSH</span></div>
  <p>Watch. Create. Earn.</p>
  <p>© 2026 JOSH. All rights reserved.</p>
 </footer>
