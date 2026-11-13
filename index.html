@@ -23,29 +23,63 @@
 <style>
 :root{color-scheme:light}
 *{box-sizing:border-box}
-/* YouTube-style light theme: white surfaces, near-black text, light grey separators. */
+/* YouTube-style light homepage: white surfaces, near-black text, light grey separators. */
 body{margin:0;background:#ffffff;color:#0f0f0f;font-family:Arial,sans-serif}
-header{height:65px;background:#ffffff;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid #e5e5e5;position:sticky;top:0;z-index:5}
-.logo{font-size:27px;font-weight:900;color:#ff3155}
-.logo span{color:#0f0f0f}
-/* JOSH brand logo. Only the logo mark changes; header/footer metrics stay identical. */
-.logo.josh-lockup{display:inline-flex;align-items:center}
-.josh-mark{height:1em;width:auto;display:block;margin-right:.26em;flex:0 0 auto}
-.logo .josh-word{color:#ff3155}
-footer .josh-mark{height:1.05em}
 button{cursor:pointer;border:0;border-radius:9px;padding:11px 15px;font-weight:bold}
 .primary{background:#ff3155;color:white}
 .secondary{background:#f2f2f2;color:#0f0f0f}
-nav{display:flex;gap:8px;overflow-x:auto;background:#ffffff;border-bottom:1px solid #e5e5e5;padding:12px}
-nav button{background:#f2f2f2;color:#0f0f0f;white-space:nowrap}
-nav button.active{background:#ff3155;color:#ffffff}
-main{padding:16px;max-width:1100px;margin:auto}
 h2{font-size:21px}
-.search{width:100%;padding:14px;border-radius:10px;border:1px solid #d9d9d9;background:#ffffff;color:#0f0f0f;margin:12px 0}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
-.card{background:#ffffff;border:1px solid #e5e5e5;border-radius:13px;overflow:hidden}
-.thumb{height:145px;background:linear-gradient(135deg,#eef1f7,#f9dde5);display:flex;align-items:center;justify-content:center;font-size:48px}
-.card-content{padding:13px}
+/* YouTube-style top app bar: hamburger + logo, centred search pill, actions. */
+header.yt-topbar{height:56px;background:#ffffff;display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid #e5e5e5;position:sticky;top:0;z-index:20}
+.yt-topbar-left{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.yt-icon-btn{background:transparent;color:#0f0f0f;padding:8px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+.yt-icon-btn:hover{background:#f2f2f2}
+.logo{font-size:27px;font-weight:900;color:#ff3155}
+.logo.josh-lockup{display:inline-flex;align-items:center;text-decoration:none}
+.josh-mark{height:1em;width:auto;display:block;margin-right:.26em;flex:0 0 auto}
+.logo .josh-word{color:#ff3155}
+footer .josh-mark{height:1.05em}
+.yt-search{display:flex;flex:1 1 auto;max-width:640px;margin:0 auto;align-items:center;border:1px solid #d9d9d9;border-radius:20px;background:#ffffff;overflow:hidden;padding-left:16px}
+.yt-search input{flex:1 1 auto;width:auto;margin:0;padding:8px 4px;border:0;border-radius:0;font-size:15px;background:#ffffff;color:#0f0f0f}
+.yt-search input:focus{outline:none}
+.yt-search-btn{background:#f2f2f2;color:#0f0f0f;border-left:1px solid #d9d9d9;border-radius:0;padding:8px 18px;display:inline-flex;align-items:center}
+.yt-search-btn:hover{background:#e9e9e9}
+#ytMobileSearchBtn{display:none}
+.yt-avatar-btn{width:32px;height:32px;border-radius:50%;background:#ff3155;color:#ffffff;font-weight:900;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:14px}
+.header-actions{display:flex;gap:8px;align-items:center;flex:0 0 auto}
+/* YouTube-style sidebar rail next to the feed. */
+.yt-body{display:grid;grid-template-columns:1fr;align-items:start}
+.yt-nav{display:none}
+.yt-nav.open{display:block;position:fixed;inset:56px 0 0 0;background:#ffffff;z-index:15;padding:12px;overflow-y:auto;border-right:1px solid #e5e5e5}
+.yt-nav-item{display:flex;align-items:center;gap:16px;width:100%;background:transparent;color:#0f0f0f;text-align:left;padding:9px 12px;border-radius:10px;font-weight:500;font-size:14px}
+.yt-nav-item:hover{background:#f2f2f2}
+.yt-nav-item.active{background:#f2f2f2;color:#0f0f0f;font-weight:700}
+.yt-nav svg{flex:0 0 auto}
+.yt-nav-title{font-size:13px;font-weight:700;color:#0f0f0f;padding:8px 12px 4px;margin:0}
+.yt-nav hr{border:0;border-top:1px solid #e5e5e5;margin:10px 0}
+@media(min-width:1000px){.yt-body{grid-template-columns:240px minmax(0,1fr)}.yt-nav{display:block;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;padding:12px 12px 24px}.yt-nav.open{position:sticky}}
+main{padding:0;max-width:none;margin:0}
+main>section{padding:24px}
+#home{padding:0}
+/* YouTube-style category chips above the feed. */
+.yt-chips{display:flex;gap:12px;overflow-x:auto;padding:12px 24px;position:sticky;top:56px;background:#ffffff;z-index:6;border-bottom:1px solid #f2f2f2}
+.yt-chip{background:#f2f2f2;color:#0f0f0f;border-radius:8px;padding:8px 12px;font-size:14px;font-weight:500;white-space:nowrap}
+.yt-chip.active{background:#0f0f0f;color:#ffffff}
+/* YouTube-style video grid: 16:9 thumbnails with avatar, title and channel lines. */
+.yt-feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px 16px;padding:24px}
+.yt-card{display:block;color:inherit;text-decoration:none;border-radius:12px;cursor:pointer}
+.yt-card:focus-visible{outline:2px solid #065fd4;outline-offset:2px}
+.yt-thumb{position:relative;aspect-ratio:16/9;border-radius:12px;background:linear-gradient(135deg,#eef1f7,#f9dde5);display:flex;align-items:center;justify-content:center;font-size:46px;overflow:hidden}
+.yt-thumb video{width:100%;height:100%;object-fit:cover;max-height:none;border-radius:0;background:#000}
+.yt-badge{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.8);color:#ffffff;font-size:12px;font-weight:700;padding:2px 5px;border-radius:4px}
+.yt-meta{display:flex;gap:12px;margin-top:12px;align-items:flex-start}
+.yt-avatar{width:36px;height:36px;border-radius:50%;background:#ff3155;color:#ffffff;font-weight:900;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:15px}
+.yt-title{margin:0 0 4px;font-size:15px;font-weight:700;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.yt-sub{margin:0;font-size:13px;color:#606060}
+.yt-empty{padding:8px 24px 40px;color:#606060;font-size:14px}
+@media(max-width:760px){.yt-search{display:none}.yt-search.mobile-open{display:flex;position:fixed;left:0;right:0;top:56px;max-width:none;margin:0;border-radius:0;border-left:0;border-right:0;border-top:0;padding:8px 12px;z-index:19;background:#ffffff}#ytMobileSearchBtn{display:inline-flex}main>section{padding:16px}.yt-chips{padding:10px 12px}.yt-feed{padding:16px;grid-template-columns:1fr;gap:20px}#shareJoshBtn{padding:9px 10px;font-size:12px}}
+/* Shared page styles (player, panels, forms, ads, share dialog, footer). */
+.thumb{height:145px;background:linear-gradient(135deg,#eef1f7,#f9dde5);display:flex;align-items:center;justify-content:center;font-size:48px;border-radius:12px}
 .muted{color:#606060;font-size:13px}
 .panel{background:#ffffff;border:1px solid #e5e5e5;border-radius:13px;padding:17px;margin:15px 0}
 .stat{background:#f9f9f9;border:1px solid #ececec;padding:16px;border-radius:10px}
@@ -64,7 +98,6 @@ video{width:100%;max-height:400px;background:black;border-radius:10px}
 @media(min-width:900px){.watch-layout{grid-template-columns:minmax(0,1fr) 300px}}
 @media(max-width:899px){.ad-slot[data-ad-slot="videoSidebar"]{display:none!important}}
 .hidden{display:none!important}
-.header-actions{display:flex;gap:8px;flex:0 0 auto}
 /* Share JOSH dialog */
 .share-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:40}
 .share-dialog{background:#ffffff;border:1px solid #e5e5e5;border-radius:16px;width:100%;max-width:430px;padding:20px;position:relative;max-height:92vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.18)}
@@ -98,56 +131,111 @@ a{color:#c81e3c}
 </head>
 <body>
 
-<header>
- <div class="logo josh-lockup"><svg class="josh-mark" viewBox="0 0 64 64" role="img" aria-label="JOSH logo"><rect x="3" y="3" width="58" height="58" rx="15" fill="#ff3155"/><path d="M25 19 46 32 25 45Z" fill="#ffffff"/></svg><span class="josh-word">JOSH</span><span></span></div>
+<!-- YouTube-style top app bar: hamburger, JOSH logo, centred search, actions. -->
+<header class="yt-topbar">
+ <div class="yt-topbar-left">
+  <button class="yt-icon-btn" type="button" id="ytMenuBtn" aria-label="Toggle navigation" aria-controls="ytNav" aria-expanded="false" onclick="toggleSidebar()">
+   <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  </button>
+  <a class="logo josh-lockup" href="#" aria-label="JOSH home" onclick="goHome();return false;">
+   <svg class="josh-mark" viewBox="0 0 64 64" role="img" aria-label="JOSH logo"><rect x="3" y="3" width="58" height="58" rx="15" fill="#ff3155"/><path d="M25 19 46 32 25 45Z" fill="#ffffff"/></svg><span class="josh-word">JOSH</span>
+  </a>
+ </div>
+ <form class="yt-search" role="search" onsubmit="searchVideos();return false;">
+  <input id="search" type="search" placeholder="Search" aria-label="Search JOSH videos" oninput="searchVideos()">
+  <button class="yt-search-btn" type="submit" aria-label="Search">
+   <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m16.5 16.5 4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  </button>
+ </form>
  <div class="header-actions">
+  <button class="yt-icon-btn" type="button" id="ytMobileSearchBtn" aria-label="Search" onclick="toggleMobileSearch()">
+   <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m16.5 16.5 4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  </button>
   <button class="secondary" id="shareJoshBtn" type="button" onclick="openShareDialog()">Share JOSH</button>
-  <button class="primary" onclick="showPage('upload')">+ Create</button>
+  <button class="primary" type="button" onclick="showPage('upload')">+ Create</button>
+  <span class="yt-avatar-btn" aria-hidden="true">J</span>
  </div>
 </header>
 
-<nav>
- <button class="active" onclick="showPage('home',this)">Home</button>
- <button onclick="showPage('live',this)">Live</button>
- <button onclick="showPage('upload',this)">Upload</button>
- <button onclick="showPage('creator',this)">Creator Studio</button>
- <button onclick="showPage('wallet',this)">My Earnings</button>
- <button data-admin-entry onclick="showPage('admin',this)">Admin</button>
-</nav>
+<div class="yt-body">
+
+<!-- YouTube-style sidebar navigation. The Admin entry stays hidden until an
+     administrator session is confirmed by the server. -->
+<aside class="yt-nav" id="ytNav" aria-label="Main navigation">
+ <button class="yt-nav-item active" type="button" onclick="showPage('home',this)">
+  <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20h-5v-5H9v5H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Home
+ </button>
+ <button class="yt-nav-item" type="button" onclick="showPage('live',this)">
+  <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M6.5 6.5a7.8 7.8 0 0 0 0 11M17.5 6.5a7.8 7.8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Live
+ </button>
+ <button class="yt-nav-item" type="button" onclick="showPage('upload',this)">
+  <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5m0 0-4 4m4-4 4 4M5 19h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Upload
+ </button>
+ <hr>
+ <p class="yt-nav-title">You</p>
+ <button class="yt-nav-item" type="button" onclick="showPage('creator',this)">
+  <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="m10 9 5 3-5 3z" fill="currentColor"/></svg>Creator Studio
+ </button>
+ <button class="yt-nav-item" type="button" onclick="showPage('wallet',this)">
+  <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>My Earnings
+ </button>
+ <button class="yt-nav-item hidden" type="button" data-admin-entry onclick="showPage('admin',this)">
+  <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Admin
+ </button>
+ <hr>
+ <button class="yt-nav-item" type="button" onclick="openShareDialog()">
+  <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5 20 11l-6 6v-4C9 13 6 15 4 19c0-6 4-9 10-9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Share JOSH
+ </button>
+</aside>
 
 <main>
 
 <section id="home">
- <h2>Welcome to JOSH 👋</h2>
- <p class="muted">Watch. Create. Share. Grow.</p>
- <input class="search" id="search" placeholder="Search videos..." oninput="searchVideos()">
+ <div class="yt-chips" role="tablist" aria-label="Video categories">
+  <button class="yt-chip active" type="button" role="tab" aria-selected="true" onclick="filterChip(this,'all')">All</button>
+  <button class="yt-chip" type="button" role="tab" aria-selected="false" onclick="filterChip(this,'music')">Music</button>
+  <button class="yt-chip" type="button" role="tab" aria-selected="false" onclick="filterChip(this,'gaming')">Gaming</button>
+  <button class="yt-chip" type="button" role="tab" aria-selected="false" onclick="filterChip(this,'live')">Live</button>
+  <button class="yt-chip" type="button" role="tab" aria-selected="false" onclick="filterChip(this,'news')">News</button>
+  <button class="yt-chip" type="button" role="tab" aria-selected="false" onclick="filterChip(this,'sports')">Sports</button>
+  <button class="yt-chip" type="button" role="tab" aria-selected="false" onclick="filterChip(this,'tech')">Tech</button>
+  <button class="yt-chip" type="button" role="tab" aria-selected="false" onclick="filterChip(this,'comedy')">Comedy</button>
+  <button class="yt-chip" type="button" role="tab" aria-selected="false" onclick="filterChip(this,'podcasts')">Podcasts</button>
+  <button class="yt-chip" type="button" role="tab" aria-selected="false" onclick="filterChip(this,'movies')">Movies</button>
+ </div>
  <!-- Homepage ad: above the video feed, outside the search and navigation controls. -->
  <div class="ad-slot" data-ad-slot="homeTop" hidden><span class="ad-label">Advertisement</span></div>
- <h2>Discover Videos</h2>
- <div class="grid" id="videos">
-  <div class="card">
-   <div class="thumb">🎬</div>
-   <div class="card-content">
-    <b>Welcome to JOSH</b>
-    <p class="muted">JOSH Official · Sample video</p>
-    <button class="primary" onclick="openWatch('Welcome to JOSH','','JOSH Official · Sample video. No video file is attached to this sample card yet.')">Watch</button>
+ <div class="yt-feed" id="videos" aria-label="Video feed">
+  <article class="yt-card" tabindex="0" role="link" aria-label="Watch Welcome to JOSH" onclick="openWatch('Welcome to JOSH','','JOSH Official · Sample video. No video file is attached to this sample card yet.')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+   <div class="yt-thumb">🎬<span class="yt-badge">Sample</span></div>
+   <div class="yt-meta">
+    <span class="yt-avatar" aria-hidden="true">J</span>
+    <div>
+     <p class="yt-title">Welcome to JOSH</p>
+     <p class="yt-sub">JOSH Official</p>
+     <p class="yt-sub">Sample video · No views yet</p>
+    </div>
    </div>
-  </div>
-  <div class="card">
-   <div class="thumb">🌍</div>
-   <div class="card-content">
-    <b>Discover Amazing Stories</b>
-    <p class="muted">Featured content · Demo</p>
-    <button class="primary" onclick="openWatch('Discover Amazing Stories','','Featured content · Demo card. No video file is attached to this sample card yet.')">Watch</button>
+  </article>
+  <article class="yt-card" tabindex="0" role="link" aria-label="Watch Discover Amazing Stories" onclick="openWatch('Discover Amazing Stories','','Featured content · Demo card. No video file is attached to this sample card yet.')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+   <div class="yt-thumb">🌍<span class="yt-badge">Sample</span></div>
+   <div class="yt-meta">
+    <span class="yt-avatar" aria-hidden="true">F</span>
+    <div>
+     <p class="yt-title">Discover Amazing Stories</p>
+     <p class="yt-sub">Featured content</p>
+     <p class="yt-sub">Demo · No views yet</p>
+    </div>
    </div>
-  </div>
+  </article>
  </div>
+ <p class="yt-empty" id="feedEmpty" hidden>No videos match this filter yet. <button class="secondary" type="button" onclick="resetFeed()">Show all videos</button></p>
  <!-- Homepage ad: after the video feed. -->
  <div class="ad-slot" data-ad-slot="homeFeed" hidden><span class="ad-label">Advertisement</span></div>
 </section>
 
 <section id="watch" class="hidden">
- <button class="secondary watch-back" onclick="showPage('home',document.querySelector('nav button'))">← Back to Home</button>
+ <button class="secondary watch-back" onclick="goHome()">← Back to Home</button>
  <div class="watch-layout">
   <div>
    <h2 id="watchTitle">Now playing</h2>
@@ -274,6 +362,7 @@ a{color:#c81e3c}
 </section>
 
 </main>
+</div>
 
 <!-- Share JOSH: shares the official published website link from site-config.js. -->
 <div class="share-backdrop hidden" id="shareDialog" role="dialog" aria-modal="true" aria-labelledby="shareTitle" aria-hidden="true">
@@ -302,14 +391,37 @@ let uploadedVideos=0;
 let totalViews=0;
 let totalLikes=0;
 let totalSeconds=0;
+let activeChip='all';
+
+function goHome(){
+ showPage('home',document.querySelector('.yt-nav-item'));
+}
 
 function showPage(id,btn){
  document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
  document.getElementById(id).classList.remove('hidden');
- document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+ document.querySelectorAll('.yt-nav-item').forEach(b=>b.classList.remove('active'));
  if(btn)btn.classList.add('active');
+ var side=document.getElementById('ytNav');
+ if(side&&window.innerWidth<1000)side.classList.remove('open');
  window.scrollTo(0,0);
  document.dispatchEvent(new CustomEvent('josh:page',{detail:{id:id}}));
+}
+
+function toggleSidebar(){
+ var side=document.getElementById('ytNav');
+ var btn=document.getElementById('ytMenuBtn');
+ if(!side)return;
+ var open=side.classList.toggle('open');
+ if(btn)btn.setAttribute('aria-expanded',open?'true':'false');
+}
+
+function toggleMobileSearch(){
+ var bar=document.querySelector('.yt-search');
+ if(!bar)return;
+ var open=bar.classList.toggle('mobile-open');
+ var field=document.getElementById('search');
+ if(open&&field)field.focus();
 }
 
 function openWatch(title,src,description){
@@ -331,7 +443,7 @@ function openWatch(title,src,description){
   art.textContent='🎬';
   shell.appendChild(art);
  }
- showPage('watch',document.querySelector('nav button'));
+ showPage('watch',document.querySelector('.yt-nav-item'));
 }
 
 function uploadVideo(){
@@ -340,11 +452,12 @@ function uploadVideo(){
  if(!title||!file){alert('Please enter a title and select a video.');return;}
  if(!file.type.startsWith('video/')){alert('Please select a valid video.');return;}
  const url=URL.createObjectURL(file);
- const card=document.createElement('div');
- card.className='card';
- card.innerHTML='<div class="card-content"><b></b><p class="muted">Your local video preview</p><button class="primary" type="button">Open video page</button></div>';
- card.querySelector('b').textContent=title;
- card.querySelector('button').onclick=()=>openWatch(title,url,'Your uploaded video preview (this browser session only).');
+ const card=document.createElement('article');
+ card.className='yt-card';
+ card.tabIndex=0;
+ card.setAttribute('role','link');
+ card.innerHTML='<div class="yt-thumb"><span class="yt-badge">Local</span></div><div class="yt-meta"><span class="yt-avatar" aria-hidden="true">Y</span><div><p class="yt-title"></p><p class="yt-sub">Your upload</p><p class="yt-sub">Local preview · This session only</p></div></div>';
+ card.querySelector('.yt-title').textContent=title;
  const player=document.createElement('video');
  player.controls=true;
  player.src=url;
@@ -356,20 +469,57 @@ function uploadVideo(){
    totalViews++;
    document.getElementById('views').textContent=totalViews;
  });
- card.prepend(player);
+ card.querySelector('.yt-thumb').prepend(player);
+ card.onclick=()=>openWatch(title,url,'Your uploaded video preview (this browser session only).');
+ card.onkeydown=(event)=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openWatch(title,url,'Your uploaded video preview (this browser session only).');}};
  document.getElementById('videos').prepend(card);
  uploadedVideos++;
  document.getElementById('videoCount').textContent=uploadedVideos;
  document.getElementById('preview').innerHTML='<p class="muted">Video added to this browser session.</p>';
  alert('Video preview added! Permanent public upload still needs backend storage.');
- showPage('home');
+ goHome();
+}
+
+function filterChip(btn,keyword){
+ activeChip=(keyword||'all').toLowerCase();
+ document.querySelectorAll('.yt-chip').forEach(c=>{
+  c.classList.remove('active');
+  c.setAttribute('aria-selected','false');
+ });
+ if(btn){btn.classList.add('active');btn.setAttribute('aria-selected','true');}
+ applyFilters();
+}
+
+function resetFeed(){
+ activeChip='all';
+ const field=document.getElementById('search');
+ if(field)field.value='';
+ document.querySelectorAll('.yt-chip').forEach((c,index)=>{
+  const isAll=index===0;
+  c.classList.toggle('active',isAll);
+  c.setAttribute('aria-selected',isAll?'true':'false');
+ });
+ applyFilters();
 }
 
 function searchVideos(){
- const query=document.getElementById('search').value.toLowerCase();
- document.querySelectorAll('#videos .card').forEach(card=>{
-  card.style.display=card.textContent.toLowerCase().includes(query)?'':'none';
+ applyFilters();
+}
+
+function applyFilters(){
+ const field=document.getElementById('search');
+ const query=(field&&field.value?field.value:'').toLowerCase().trim();
+ let shown=0;
+ document.querySelectorAll('#videos .yt-card').forEach(card=>{
+  const text=card.textContent.toLowerCase();
+  const matchesQuery=!query||text.indexOf(query)!==-1;
+  const matchesChip=activeChip==='all'||text.indexOf(activeChip)!==-1;
+  const visible=matchesQuery&&matchesChip;
+  card.style.display=visible?'':'none';
+  if(visible)shown++;
  });
+ const empty=document.getElementById('feedEmpty');
+ if(empty)empty.hidden=shown>0;
 }
 </script>
 
@@ -457,4 +607,4 @@ function searchVideos(){
 })();
 </script>
   </html>
-   
+  
