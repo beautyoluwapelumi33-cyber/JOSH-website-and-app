@@ -10,6 +10,7 @@
     "test": "node --test tests/",
     "create-admin": "node scripts/create-admin.js",
     "verify:production": "node scripts/verify-production.mjs",
+    "verify:admin": "node scripts/verify-admin.mjs",
     "check": "node --check server/index.js && node --check server/site-url.js && node --check server/db.js && node --check server/adsense.js && node --check server/auth.js && node --check server/security.js && node --check server/audit.js && node --check server/errors.js && node --check adsense.js && node --check site-config.js && node --check share.js"
   },
   "engines": {
