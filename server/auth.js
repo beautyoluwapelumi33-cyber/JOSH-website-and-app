@@ -138,7 +138,15 @@ function ensureAdmin({ email, password, displayName } = {}) {
   if (existing) {
     const promoted = existing.role !== 'admin';
     if (promoted) db.run('UPDATE users SET role = ? WHERE id = ?', ['admin', existing.id]);
-    return { user: db.get('SELECT * FROM users WHERE id = ?', [existing.id]), created: false, promoted };
+    // Recover a lost owner password without ever storing it: only re-hash when the
+    // supplied password differs from the stored one, so a redeploy never resets it.
+    let passwordReset = false;
+    if (String(password || '').length >= 8 && !verifyPassword(password, existing.password_hash)) {
+      db.run('UPDATE users SET password_hash = ? WHERE id = ?', [hashPassword(password), existing.id]);
+      db.run('DELETE FROM sessions WHERE user_id = ?', [existing.id]);
+      passwordReset = true;
+    }
+    return { user: db.get('SELECT * FROM users WHERE id = ?', [existing.id]), created: false, promoted, passwordReset };
   }
   if (String(password || '').length < 8) {
     throw badRequest('weak_password', 'Administrator password must be at least 8 characters.');
