@@ -306,6 +306,13 @@
   window.copyJoshLink = copyLink;
   window.shareJoshNative = nativeShare;
   window.joshPublicUrl = publicUrl;
+  // Provider URL for one target, used by the share dialog and by the checks.
+  window.joshShareLink = function (id) {
+    var url = publicUrl();
+    if (!url) return null;
+    var target = TARGETS.filter(function (item) { return item.id === id; })[0];
+    return target ? target.link(url, shareText()) : null;
+  };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
