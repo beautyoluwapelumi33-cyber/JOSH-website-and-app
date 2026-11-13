@@ -20,6 +20,8 @@ const auth = require('./auth');
 const adsense = require('./adsense');
 const siteUrl = require('./site-url');
 const { ApiError } = require('./errors');
+const adminRoutes = require('./admin');
+const creatorRoutes = require('./creator');
 
 const ROOT = path.join(__dirname, '..');
 const PORT = Number(process.env.PORT) || 3000;
@@ -116,8 +118,27 @@ function siteRoutes() {
   return r;
 }
 
+function bootstrapOwnerAdmin() {
+  const email = (process.env.JOSH_ADMIN_EMAIL || '').trim();
+  const password = process.env.JOSH_ADMIN_PASSWORD || '';
+  if (!email) {
+    console.log('[josh] JOSH_ADMIN_EMAIL is not set, so no owner administrator is bootstrapped.');
+    return;
+  }
+  try {
+    const result = auth.ensureAdmin({ email, password, displayName: process.env.JOSH_ADMIN_NAME || 'JOSH Owner' });
+    if (result.created) console.log('[josh] owner administrator created:', result.user.email);
+    else if (result.promoted) console.log('[josh] existing account promoted to administrator:', result.user.email);
+    else console.log('[josh] owner administrator present:', result.user.email);
+  } catch (err) {
+    // A weak or missing password must not stop the website from serving.
+    console.error('[josh] administrator bootstrap skipped:', err.message);
+  }
+}
+
 async function createApp() {
   await db.open(DATA_FILE);
+  bootstrapOwnerAdmin();
 
   const app = express();
   app.disable('x-powered-by');
@@ -129,6 +150,9 @@ async function createApp() {
 
   app.get('/api/health', (req, res) => res.json({ ok: true }));
   app.use('/api/auth', auth.router());
+  app.use('/api/admin', adminRoutes.router());
+  app.use('/api/creator', creatorRoutes.router());
+  app.use('/api', creatorRoutes.publicRouter());
   app.use('/api', adsenseRoutes());
 
   // Unknown API paths must stay JSON so the page never parses HTML as an error body.
