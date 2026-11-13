@@ -1,0 +1,25 @@
+{
+  "name": "josh-website-and-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "adsense-config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/beautyoluwapelumi33-cyber/JOSH-website-and-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/beautyoluwapelumi33-cyber/JOSH-website-and-app/issues"
+  },
+  "homepage": "https://github.com/beautyoluwapelumi33-cyber/JOSH-website-and-app#readme",
+  "dependencies": {
+    "express": "^4.22.3",
+    "sql.js": "^1.16.0"
+  }
+}
