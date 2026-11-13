@@ -1,1 +1,234 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JOSH - Watch. Create. Earn.</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0e1015;color:white;font-family:Arial,sans-serif}
+header{height:65px;background:#171a22;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:5}
+.logo{font-size:27px;font-weight:900;color:#ff3155}
+.logo span{color:white}
+button{cursor:pointer;border:0;border-radius:9px;padding:11px 15px;font-weight:bold}
+.primary{background:#ff3155;color:white}
+.secondary{background:#292e39;color:white}
+nav{display:flex;gap:8px;overflow-x:auto;background:#171a22;padding:12px}
+nav button{background:#292e39;color:white;white-space:nowrap}
+nav button.active{background:#ff3155}
+main{padding:16px;max-width:1100px;margin:auto}
+h2{font-size:21px}
+.search{width:100%;padding:14px;border-radius:10px;border:1px solid #393e4a;background:#20242e;color:white;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.card{background:#1b1f29;border-radius:13px;overflow:hidden}
+.thumb{height:145px;background:linear-gradient(135deg,#343b57,#8c315a);display:flex;align-items:center;justify-content:center;font-size:48px}
+.card-content{padding:13px}
+.muted{color:#9ba2b2;font-size:13px}
+.panel{background:#1b1f29;border:1px solid #343947;border-radius:13px;padding:17px;margin:15px 0}
+.stat{background:#252b38;padding:16px;border-radius:10px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.stat strong{display:block;font-size:23px;color:#ff5270;margin-top:8px}
+input,textarea,select{background:#252b38;border:1px solid #444b5b;color:white;border-radius:8px;padding:12px;width:100%;margin:7px 0}
+video{width:100%;max-height:400px;background:black;border-radius:10px}
+.hidden{display:none!important}
+footer{text-align:center;padding:30px;color:#9299a8}
+a{color:#ff6680}
+</style>
+</head>
+<body>
+
+<header>
+ <div class="logo">▶ JOSH<span></span></div>
+ <button class="primary" onclick="showPage('upload')">+ Create</button>
+</header>
+
+<nav>
+ <button class="active" onclick="showPage('home',this)">Home</button>
+ <button onclick="showPage('live',this)">Live</button>
+ <button onclick="showPage('upload',this)">Upload</button>
+ <button onclick="showPage('creator',this)">Creator Studio</button>
+ <button onclick="showPage('wallet',this)">My Earnings</button>
+ <button onclick="showPage('admin',this)">Admin</button>
+</nav>
+
+<main>
+
+<section id="home">
+ <h2>Welcome to JOSH 👋</h2>
+ <p class="muted">Watch. Create. Share. Grow.</p>
+ <input class="search" id="search" placeholder="Search videos..." oninput="searchVideos()">
+ <h2>Discover Videos</h2>
+ <div class="grid" id="videos">
+  <div class="card">
+   <div class="thumb">🎬</div>
+   <div class="card-content">
+    <b>Welcome to JOSH</b>
+    <p class="muted">JOSH Official · Sample video</p>
+    <button class="primary" onclick="alert('Upload a video to start watching your own content.')">Watch</button>
+   </div>
+  </div>
+  <div class="card">
+   <div class="thumb">🌍</div>
+   <div class="card-content">
+    <b>Discover Amazing Stories</b>
+    <p class="muted">Featured content · Demo</p>
+    <button class="primary" onclick="alert('This is a sample video card.')">Watch</button>
+   </div>
+  </div>
+ </div>
+</section>
+
+<section id="upload" class="hidden">
+ <h2>Upload Your Video</h2>
+ <div class="panel">
+  <label>Video title</label>
+  <input id="videoTitle" placeholder="Enter video title">
+  <label>Description</label>
+  <textarea id="videoDescription" placeholder="Describe your video"></textarea>
+  <label>Select video file</label>
+  <input type="file" id="videoFile" accept="video/*">
+  <button class="primary" onclick="uploadVideo()">Preview Upload</button>
+  <p class="muted">This first version previews videos locally. Permanent public uploads require a connected storage backend.</p>
+  <div id="preview"></div>
+ </div>
+</section>
+
+<section id="live" class="hidden">
+ <h2>JOSH Live</h2>
+ <div class="panel">
+  <h3>Go Live</h3>
+  <p class="muted">Livestreaming will require a connected streaming server and creator authorization.</p>
+  <button class="primary" onclick="alert('Live streaming is not connected yet. A streaming service must be integrated first.')">Start Live</button>
+ </div>
+ <div class="panel">
+  <h3>Live streams</h3>
+  <p class="muted">No live streams available yet.</p>
+ </div>
+</section>
+
+<section id="creator" class="hidden">
+ <h2>Creator Studio</h2>
+ <p class="muted">Your creator performance overview</p>
+ <div class="stats">
+  <div class="stat">Video views<strong id="views">0</strong></div>
+  <div class="stat">Watch hours<strong id="hours">0</strong></div>
+  <div class="stat">Videos<strong id="videoCount">0</strong></div>
+  <div class="stat">Likes<strong id="likes">0</strong></div>
+ </div>
+ <div class="panel">
+  <h3>Creator monetization</h3>
+  <p>Creators receive <b>60%</b> of eligible net advertising revenue.</p>
+  <p>JOSH receives <b>40%</b>.</p>
+  <p class="muted">Actual earnings depend on approved advertising, verified revenue and eligibility. No guaranteed payment per view.</p>
+ </div>
+</section>
+
+<section id="wallet" class="hidden">
+ <h2>My Earnings & Withdrawals</h2>
+ <div class="panel">
+  <p class="muted">Available balance</p>
+  <h1>0.00 USDT</h1>
+  <p>Minimum withdrawal: <b>0.5 USDT</b></p>
+  <p>Payment currency: <b>USDT</b></p>
+  <p>Network: <b>BEP20 (BNB Smart Chain)</b></p>
+ </div>
+ <div class="panel">
+  <h3>Request withdrawal</h3>
+  <input id="withdrawAmount" type="number" min="0.5" step="0.01" placeholder="Amount in USDT">
+  <input id="walletAddress" placeholder="Your BEP20 receiving wallet address">
+  <select id="walletApp">
+   <option value="">Select wallet or exchange app</option>
+   <option>Binance</option>
+   <option>Trust Wallet</option>
+   <option>MetaMask</option>
+   <option>Other compatible wallet</option>
+  </select>
+  <button class="primary" onclick="alert('Withdrawals are not active yet. Secure backend payment processing and balance verification must be connected first.')">Request Withdrawal</button>
+  <p class="muted">Only compatible USDT BEP20 receiving addresses are accepted. Never send funds to a TRC20 or ERC20 address for a BEP20 withdrawal.</p>
+ </div>
+</section>
+
+<section id="admin" class="hidden">
+ <h2>JOSH Administration</h2>
+ <div class="panel">
+  <h3>Private administrator access</h3>
+  <p class="muted">This dashboard requires secure server-side administrator authentication before deployment.</p>
+  <input type="email" placeholder="Administrator email">
+  <input type="password" placeholder="Administrator password">
+  <button class="primary" onclick="alert('Admin authentication is not connected yet. This demo cannot grant administrator access.')">Admin Login</button>
+ </div>
+ <div class="panel">
+  <h3>Platform management</h3>
+  <div class="stats">
+   <div class="stat">Users<strong>0</strong></div>
+   <div class="stat">Creators<strong>0</strong></div>
+   <div class="stat">Videos<strong>0</strong></div>
+   <div class="stat">Ad revenue<strong>0 USDT</strong></div>
+  </div>
+  <p class="muted">User management, advertising reports, creator moderation and payments will be connected through the private backend.</p>
+ </div>
+</section>
+
+</main>
+
+<footer>
+ <div class="logo">▶ JOSH</div>
+ <p>Watch. Create. Earn.</p>
+ <p>© 2026 JOSH. All rights reserved.</p>
+</footer>
+
+<script>
+let uploadedVideos=0;
+let totalViews=0;
+let totalLikes=0;
+let totalSeconds=0;
+
+function showPage(id,btn){
+ document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
+ document.getElementById(id).classList.remove('hidden');
+ document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+ if(btn)btn.classList.add('active');
+ window.scrollTo(0,0);
+}
+
+function uploadVideo(){
+ const title=document.getElementById('videoTitle').value.trim();
+ const file=document.getElementById('videoFile').files[0];
+ if(!title||!file){alert('Please enter a title and select a video.');return;}
+ if(!file.type.startsWith('video/')){alert('Please select a valid video.');return;}
+ const url=URL.createObjectURL(file);
+ const card=document.createElement('div');
+ card.className='card';
+ card.innerHTML='<div class="card-content"><b></b><p class="muted">Your local video preview</p></div>';
+ card.querySelector('b').textContent=title;
+ const player=document.createElement('video');
+ player.controls=true;
+ player.src=url;
+ player.addEventListener('timeupdate',()=>{
+   totalSeconds+=1;
+   document.getElementById('hours').textContent=(totalSeconds/3600).toFixed(2);
+ });
+ player.addEventListener('play',()=>{
+   totalViews++;
+   document.getElementById('views').textContent=totalViews;
+ });
+ card.prepend(player);
+ document.getElementById('videos').prepend(card);
+ uploadedVideos++;
+ document.getElementById('videoCount').textContent=uploadedVideos;
+ document.getElementById('preview').innerHTML='<p class="muted">Video added to this browser session.</p>';
+ alert('Video preview added! Permanent public upload still needs backend storage.');
+ showPage('home');
+}
+
+function searchVideos(){
+ const query=document.getElementById('search').value.toLowerCase();
+ document.querySelectorAll('#videos .card').forEach(card=>{
+  card.style.display=card.textContent.toLowerCase().includes(query)?'':'none';
+ });
+}
+</script>
+</body>
+  </html>
+   
