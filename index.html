@@ -153,6 +153,47 @@ body{padding-bottom:calc(var(--josh-tabbar) + env(safe-area-inset-bottom,0px))}
 @media(max-width:999px){.yt-nav.open{inset:56px 0 calc(var(--josh-tabbar) + env(safe-area-inset-bottom,0px)) 0}}
 @media(min-width:1000px){.josh-tabbar{left:50%;right:auto;transform:translateX(-50%);width:min(560px,100%);border:1px solid #e5e5e5;border-bottom:0;border-radius:16px 16px 0 0;box-shadow:0 -2px 14px rgba(0,0,0,.08)}}
 @media(max-width:600px){.header-actions .secondary{display:none}.header-actions .primary{display:none}.shorts-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* ---------- Admin console + responsive dashboards (phones, tablets, laptops) ---------- */
+[hidden]{display:none!important}
+.admin-tabs{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 0 10px;margin-bottom:6px}
+.admin-tab{flex:0 0 auto;border:1px solid #e5e5e5;background:#fff;border-radius:999px;padding:8px 14px;font-size:14px;line-height:1.2;cursor:pointer;color:#0f0f0f}
+.admin-tab.active{background:#ff3155;border-color:#ff3155;color:#fff}
+.admin-tab:focus-visible{outline:2px solid #065fd4;outline-offset:2px}
+.admin-panel-block{margin-top:4px}
+.admin-subhead{margin:18px 0 0;font-size:15px}
+.admin-mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;word-break:break-all}
+.admin-note{font-size:13px;margin:8px 0 0}
+.admin-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #e5e5e5;border-radius:12px;margin-top:10px;background:#fff}
+.admin-table{width:100%;border-collapse:collapse;font-size:14px;min-width:640px}
+.admin-table th,.admin-table td{padding:10px 12px;text-align:left;border-bottom:1px solid #f0f0f0;white-space:nowrap;vertical-align:middle}
+.admin-table th{background:#fafafa;font-weight:600;color:#0f0f0f}
+.admin-table tbody tr:last-child td{border-bottom:0}
+.admin-table select,.admin-table input{padding:6px 8px;font-size:13px;border:1px solid #d9d9d9;border-radius:8px;background:#fff;color:#0f0f0f;min-width:0}
+.admin-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.admin-actions button{font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid #d9d9d9;background:#fff;cursor:pointer}
+.admin-actions button.primary{background:#ff3155;border-color:#ff3155;color:#fff}
+.admin-form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:10px 0}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;background:#f1f1f1;color:#333;text-transform:lowercase}
+.pill.pending,.pill.awaiting_authorization{background:#fff4d6;color:#8a6100}
+.pill.approved,.pill.processing,.pill.credited,.pill.connected{background:#e6f0ff;color:#1d4ed8}
+.pill.paid,.pill.live{background:#e3f7e8;color:#17693a}
+.pill.failed,.pill.rejected,.pill.error{background:#fde8e8;color:#9b1c1c}
+#wallet .stats,#admin .stats{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+@media(max-width:760px){
+ h1{font-size:22px}
+ h2{font-size:20px}
+ h3{font-size:16px}
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .stat strong{font-size:18px}
+ .admin-tab{padding:7px 12px;font-size:13px}
+ .admin-table{min-width:560px;font-size:13px}
+ .admin-table th,.admin-table td{padding:8px 10px}
+ .admin-form-row{grid-template-columns:1fr}
+ .panel{padding:14px}
+ #admin .panel,#wallet .panel{margin-bottom:12px}
+ video,iframe,canvas,img{max-width:100%}
+}
+@media(max-width:380px){.stats{grid-template-columns:1fr}}
 </style>
 <!-- Google AdSense (website only — no AdMob SDK).
      adsense.js inserts the official AdSense tag into this <head>, and only when a
@@ -919,90 +960,6 @@ function applyFilters(){
 }
 </script>
 
-<script>
-/* Administrator area stays hidden on the public website. The entry appears only
-   for an authenticated administrator session (server-side role check) or when
-   the owner opens the site with ?admin=1 to reach the sign-in form. */
-(function(){
- const entry=document.querySelector('[data-admin-entry]');
- const panel=document.querySelector('[data-admin-panel]');
- const form=document.getElementById('adminLoginForm');
- const status=document.getElementById('adminStatus');
- const note=document.getElementById('adminLoginNote');
- const publishField=document.getElementById('adminPublishLink');
-
- function officialLink(){return (window.JOSH_PUBLIC_URL||'').trim();}
- function revealEntry(){
-  document.querySelectorAll('[data-admin-entry]').forEach(function(el){el.classList.remove('hidden');});
- }
- function showNote(message){if(note)note.textContent=message||'';}
-
- function unlockAdmin(user){
-  revealEntry();
-  if(panel)panel.hidden=false;
-  if(form)form.classList.add('hidden');
-  if(status)status.textContent='Signed in as '+((user&&user.email)||'administrator')+'.';
-  if(publishField)publishField.value=officialLink();
-  showNote('');
- }
-
- async function api(path,options){
-  const response=await fetch(path,Object.assign({credentials:'include',headers:{Accept:'application/json'}},options||{}));
-  const type=response.headers.get('content-type')||'';
-  const data=type.indexOf('application/json')>=0?await response.json().catch(()=>null):null;
-  return {response:response,data:data};
- }
-
- function errorMessage(result,fallback){
-  const data=result&&result.data;
-  if(data&&data.error&&data.error.message)return data.error.message;
-  if(data&&data.message)return data.message;
-  return fallback;
- }
-
- async function checkSession(){
-  try{
-   const result=await api('/api/auth/me');
-   const user=result.data&&result.data.user;
-   if(result.response.ok&&user&&user.role==='admin')unlockAdmin(user);
-  }catch(err){/* static build: the API is not part of this deployment */}
- }
-
- const wantsAdmin=new URLSearchParams(location.search).get('admin')==='1';
- const hasSession=/(^|;\s*)[^=;]*session[^=;]*=/i.test(document.cookie||'');
- if(wantsAdmin)revealEntry();
-
- if(form){
-  form.addEventListener('submit',async function(event){
-   event.preventDefault();
-   showNote('');
-   const email=(form.querySelector('input[name="email"]').value||'').trim();
-   const password=form.querySelector('input[name="password"]').value||'';
-   if(!email||!password){showNote('Enter the administrator email and password.');return;}
-   try{
-    const result=await api('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({email:email,password:password})});
-    if(!result.response.ok){showNote(errorMessage(result,'Sign-in failed. Check the administrator email and password.'));return;}
-    const user=result.data&&result.data.user;
-    if(!user||user.role!=='admin'){showNote('This account is not an administrator.');return;}
-    unlockAdmin(user);
-   }catch(err){
-    showNote('Administrator sign-in needs the JOSH backend, which this published build does not include yet.');
-   }
-  });
- }
-
- window.copyPublishLink=function(){
-  const value=officialLink();
-  if(!value){showNote('The official publish link is not configured yet.');return;}
-  if(navigator.clipboard&&navigator.clipboard.writeText){
-   navigator.clipboard.writeText(value).then(function(){showNote('Publish link copied.');}).catch(function(){showNote(value);});
-   return;
-  }
-  showNote(value);
- };
-
- if(wantsAdmin||hasSession)checkSession();
-})();
-</script>
+<script src="dashboard.js"></script>
   </html>
   
