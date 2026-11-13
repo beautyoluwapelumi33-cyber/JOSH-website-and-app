@@ -1,0 +1,14 @@
+# ads.txt — Authorized Digital Sellers for this website
+#
+# Served from the website root: https://<your-domain>/ads.txt
+# Google requires it to be publicly readable over HTTPS before it can be used.
+#
+# Your real AdSense publisher ID is not configured yet, so this file currently
+# authorises no seller. A placeholder ID would be an invalid credential claim,
+# so the real line is written only once you provide your publisher ID:
+#
+#   node scripts/setup-adsense.mjs --publisher ca-pub-XXXXXXXXXXXXXXXX
+#
+# The line that will be added (Google LLC is AdSense's certification authority):
+#
+# google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
