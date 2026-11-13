@@ -412,7 +412,9 @@ function searchVideos(){
   }catch(err){/* static build: the API is not part of this deployment */}
  }
 
- if(new URLSearchParams(location.search).get('admin')==='1')revealEntry();
+ const wantsAdmin=new URLSearchParams(location.search).get('admin')==='1';
+ const hasSession=/(^|;\s*)[^=;]*session[^=;]*=/i.test(document.cookie||'');
+ if(wantsAdmin)revealEntry();
 
  if(form){
   form.addEventListener('submit',async function(event){
@@ -443,7 +445,7 @@ function searchVideos(){
   showNote(value);
  };
 
- checkSession();
+ if(wantsAdmin||hasSession)checkSession();
 })();
 </script>
   </html>
