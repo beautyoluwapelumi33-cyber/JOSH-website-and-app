@@ -345,18 +345,24 @@ body{padding-bottom:calc(var(--josh-tabbar) + env(safe-area-inset-bottom,0px))}
 </section>
 
 <section id="wallet" class="hidden">
- <h2>My Earnings & Withdrawals</h2>
+ <h2>My Earnings &amp; Withdrawals</h2>
+ <p class="muted" id="walletStatus">Sign in to see your verified earnings.</p>
+ <div class="stats">
+  <div class="stat">Available balance<strong id="walletBalance">0.00 USDT</strong></div>
+  <div class="stat">Total credited<strong id="walletEarned">0.00 USDT</strong></div>
+  <div class="stat">Estimated (not finalized)<strong id="walletEstimated">0.00 USDT</strong></div>
+  <div class="stat">Minimum withdrawal<strong id="walletMin">0.5 USDT</strong></div>
+ </div>
  <div class="panel">
-  <p class="muted">Available balance</p>
-  <h1>0.00 USDT</h1>
-  <p>Minimum withdrawal: <b>0.5 USDT</b></p>
-  <p>Payment currency: <b>USDT</b></p>
-  <p>Network: <b>BEP20 (BNB Smart Chain)</b></p>
+  <h3>Payment details</h3>
+  <p>Payment currency: <b>USDT</b> · Network: <b>BEP20 (BNB Smart Chain)</b></p>
+  <input id="walletAddress" placeholder="Your BEP20 receiving wallet address (0x…)" autocomplete="off">
+  <button class="primary" type="button" id="walletSaveBtn">Save wallet address</button>
+  <p class="muted">Only BEP20 addresses are accepted. Never use a TRC20 or ERC20 address for a BEP20 withdrawal.</p>
  </div>
  <div class="panel">
   <h3>Request withdrawal</h3>
   <input id="withdrawAmount" type="number" min="0.5" step="0.01" placeholder="Amount in USDT">
-  <input id="walletAddress" placeholder="Your BEP20 receiving wallet address">
   <select id="walletApp">
    <option value="">Select wallet or exchange app</option>
    <option>Binance</option>
@@ -364,38 +370,152 @@ body{padding-bottom:calc(var(--josh-tabbar) + env(safe-area-inset-bottom,0px))}
    <option>MetaMask</option>
    <option>Other compatible wallet</option>
   </select>
-  <button class="primary" onclick="alert('Withdrawals are not active yet. Secure backend payment processing and balance verification must be connected first.')">Request Withdrawal</button>
-  <p class="muted">Only compatible USDT BEP20 receiving addresses are accepted. Never send funds to a TRC20 or ERC20 address for a BEP20 withdrawal.</p>
+  <button class="primary" type="button" id="withdrawBtn">Request Withdrawal</button>
+  <p class="muted">Minimum withdrawal is 0.5 USDT. A payout is only marked paid after the transaction is verified on BNB Smart Chain.</p>
+ </div>
+ <div class="panel">
+  <h3>Withdrawal history</h3>
+  <div id="withdrawHistory"><p class="muted">No withdrawals yet.</p></div>
  </div>
 </section>
 
 <section id="admin" class="hidden">
  <h2>JOSH Administration</h2>
- <div class="panel">
-  <h3>Private administrator access</h3>
-  <p class="muted" id="adminStatus">This dashboard is private. Sign in with an administrator account — the public website never exposes administrator data.</p>
+ <p class="muted" id="adminStatus">This dashboard is private. Sign in with an administrator account — the public website never exposes administrator data.</p>
+
+ <div class="panel" id="adminLoginPanel">
+  <h3>Secure administrator sign-in</h3>
   <form id="adminLoginForm">
-   <input type="email" name="email" placeholder="Administrator email" autocomplete="username">
-   <input type="password" name="password" placeholder="Administrator password" autocomplete="current-password">
+   <input type="email" name="email" placeholder="Administrator email" autocomplete="username" required>
+   <input type="password" name="password" placeholder="Administrator password" autocomplete="current-password" required>
    <button class="primary" type="submit">Admin Login</button>
   </form>
   <p class="muted" id="adminLoginNote"></p>
+  <p class="muted admin-note">The JOSH backend verifies the administrator role on every request. Creators and visitors cannot open these controls.</p>
  </div>
- <div class="panel" data-admin-panel hidden>
-  <h3>Publish &amp; sharing link</h3>
-  <p class="muted">The official public website link used by Share JOSH. It opens for everyone and needs no admin access.</p>
-  <div class="share-url">
-   <input id="adminPublishLink" readonly aria-label="Official publish and sharing link">
-   <button class="primary" type="button" onclick="copyPublishLink()">Copy</button>
+
+ <div data-admin-panel hidden>
+  <div class="admin-tabs" role="tablist" aria-label="Administrator sections">
+   <button class="admin-tab active" type="button" data-admin-tab="overview" role="tab" aria-selected="true">Overview</button>
+   <button class="admin-tab" type="button" data-admin-tab="users" role="tab" aria-selected="false">Users</button>
+   <button class="admin-tab" type="button" data-admin-tab="videos" role="tab" aria-selected="false">Videos</button>
+   <button class="admin-tab" type="button" data-admin-tab="live" role="tab" aria-selected="false">Livestreams</button>
+   <button class="admin-tab" type="button" data-admin-tab="revenue" role="tab" aria-selected="false">Advertising</button>
+   <button class="admin-tab" type="button" data-admin-tab="earnings" role="tab" aria-selected="false">Earnings</button>
+   <button class="admin-tab" type="button" data-admin-tab="withdrawals" role="tab" aria-selected="false">Withdrawals</button>
+   <button class="admin-tab" type="button" data-admin-tab="settings" role="tab" aria-selected="false">Settings</button>
+   <button class="admin-tab" type="button" data-admin-tab="audit" role="tab" aria-selected="false">Audit log</button>
   </div>
-  <h3>Platform management</h3>
-  <div class="stats">
-   <div class="stat">Users<strong>0</strong></div>
-   <div class="stat">Creators<strong>0</strong></div>
-   <div class="stat">Videos<strong>0</strong></div>
-   <div class="stat">Ad revenue<strong>0 USDT</strong></div>
+
+  <div class="admin-panel-block" data-admin-block="overview">
+   <div class="stats" id="adminOverviewStats"></div>
+   <div class="panel">
+    <h3>Publish &amp; sharing link</h3>
+    <p class="muted">The official public website link used by Share JOSH. It opens for everyone and needs no admin access.</p>
+    <div class="share-url">
+     <input id="adminPublishLink" readonly aria-label="Official publish and sharing link">
+     <button class="primary" type="button" onclick="copyPublishLink()">Copy</button>
+    </div>
+    <p class="muted admin-note" id="adminOverviewNote"></p>
+   </div>
   </div>
-  <p class="muted">User management, advertising reports, creator moderation and payments are served by the private backend, never by public pages.</p>
+
+  <div class="admin-panel-block" data-admin-block="users" hidden>
+   <div class="panel">
+    <h3>Registered users &amp; creator management</h3>
+    <p class="muted">Only grant administrator rights to accounts you control. Administrators can manage every part of JOSH.</p>
+    <div id="adminUsersHost"></div>
+   </div>
+  </div>
+
+  <div class="admin-panel-block" data-admin-block="videos" hidden>
+   <div class="panel">
+    <h3>Add a video record</h3>
+    <div class="admin-form-row">
+     <input id="adminVideoTitle" placeholder="Video title">
+     <input id="adminVideoCreator" placeholder="Creator email (optional)">
+     <input id="adminVideoUrl" placeholder="Video file URL (optional)">
+    </div>
+    <button class="primary" type="button" id="adminVideoAddBtn">Publish video record</button>
+    <p class="muted admin-note">Views and watch hours only increase from real playback — they are never seeded.</p>
+   </div>
+   <div class="panel"><h3>Video management</h3><div id="adminVideosHost"></div></div>
+  </div>
+
+  <div class="admin-panel-block" data-admin-block="live" hidden>
+   <div class="panel">
+    <h3>Schedule a livestream</h3>
+    <div class="admin-form-row">
+     <input id="adminLiveTitle" placeholder="Stream title">
+     <input id="adminLiveCreator" placeholder="Creator email (optional)">
+     <input id="adminLiveUrl" placeholder="Stream URL (optional)">
+    </div>
+    <button class="primary" type="button" id="adminLiveAddBtn">Schedule stream</button>
+   </div>
+   <div class="panel"><h3>Livestream monitoring</h3><div id="adminLiveHost"></div></div>
+  </div>
+
+  <div class="admin-panel-block" data-admin-block="revenue" hidden>
+   <div class="panel"><h3>AdSense &amp; advertising revenue</h3><div id="adminAdsenseHost"></div></div>
+   <div class="panel">
+    <h3>Manual revenue entry</h3>
+    <p class="muted">Revenue recorded outside the API is labelled manual and can never be counted twice for the same date.</p>
+    <div class="admin-form-row">
+     <input id="adminRevDate" type="date">
+     <input id="adminRevEstimated" type="number" min="0" step="0.01" placeholder="Estimated USD">
+     <input id="adminRevFinalized" type="number" min="0" step="0.01" placeholder="Finalized USD (optional)">
+     <input id="adminRevNote" placeholder="Source note (required)">
+    </div>
+    <button class="primary" type="button" id="adminRevAddBtn">Record revenue</button>
+   </div>
+   <div class="panel"><h3>Daily revenue</h3><div id="adminRevenueHost"></div></div>
+  </div>
+
+  <div class="admin-panel-block" data-admin-block="earnings" hidden>
+   <div class="panel">
+    <h3>60% creator / 40% JOSH distribution</h3>
+    <div class="admin-form-row">
+     <input id="adminPeriod" placeholder="Period (YYYY-MM)">
+     <button class="primary" type="button" id="adminDistributeBtn">Distribute finalized month</button>
+    </div>
+    <p class="muted admin-note">Only finalized, eligible net revenue is shared. Each creator receives 60% of the pool weighted by verified eligible views. Re-running a month never double-credits.</p>
+   </div>
+   <div class="panel">
+    <h3>Record verified creator views</h3>
+    <div class="admin-form-row">
+     <input id="adminMetricEmail" placeholder="Creator email">
+     <input id="adminMetricDate" type="date">
+     <input id="adminMetricViews" type="number" min="0" placeholder="Eligible views">
+    </div>
+    <button class="primary" type="button" id="adminMetricAddBtn">Save verified views</button>
+   </div>
+   <div class="panel"><h3>Creator earnings</h3><div id="adminEarningsHost"></div></div>
+  </div>
+
+  <div class="admin-panel-block" data-admin-block="withdrawals" hidden>
+   <div class="panel">
+    <h3>USDT BEP20 withdrawals</h3>
+    <p class="muted" id="adminPaymentsNote"></p>
+    <div id="adminWithdrawalsHost"></div>
+   </div>
+  </div>
+
+  <div class="admin-panel-block" data-admin-block="settings" hidden>
+   <div class="panel">
+    <h3>Website settings &amp; logo</h3>
+    <div class="admin-form-row">
+     <input id="adminSiteName" placeholder="Site name">
+     <input id="adminLogoAccent" placeholder="Logo accent colour (#ff3155)">
+     <input id="adminLogoUrl" placeholder="Logo image URL (optional)">
+    </div>
+    <button class="primary" type="button" id="adminSettingsSave">Save settings</button>
+    <p class="muted admin-note">The JOSH name and logo stay in place; these values refine branding only.</p>
+   </div>
+  </div>
+
+  <div class="admin-panel-block" data-admin-block="audit" hidden>
+   <div class="panel"><h3>Audit log</h3><div id="adminAuditHost"></div></div>
+  </div>
  </div>
 </section>
 
