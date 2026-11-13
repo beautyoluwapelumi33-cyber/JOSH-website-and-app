@@ -17,10 +17,13 @@
  *   - public pages never leak private administrator data
  */
 
-const { spawn } = require('node:child_process');
-const http = require('node:http');
-const fs = require('node:fs');
-const path = require('node:path');
+import { spawn } from 'node:child_process';
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 const PORT = Number(process.env.VERIFY_PORT || 3179);
 const RPC_PORT = PORT + 1;
@@ -111,7 +114,7 @@ async function main() {
   await new Promise((resolve) => stubNode.listen(RPC_PORT, '127.0.0.1', resolve));
 
   const server = spawn(process.execPath, ['server/index.js'], {
-    cwd: path.join(__dirname, '..'),
+    cwd: ROOT,
     env: {
       ...process.env,
       PORT: String(PORT),
