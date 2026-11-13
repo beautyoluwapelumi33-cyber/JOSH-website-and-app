@@ -1,25 +1,21 @@
 {
-  "name": "josh-website-and-app",
-  "version": "1.0.0",
-  "description": "",
-  "main": "adsense-config.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/beautyoluwapelumi33-cyber/JOSH-website-and-app.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "name": "josh-platform",
+  "version": "2.0.0",
+  "private": true,
+  "description": "JOSH — YouTube-style video platform with AdSense revenue, 60/40 creator sharing and USDT BEP20 withdrawals",
+  "main": "server/index.js",
   "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/beautyoluwapelumi33-cyber/JOSH-website-and-app/issues"
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node --test tests/",
+    "create-admin": "node scripts/create-admin.js",
+    "check": "node --check server/index.js && node --check server/db.js && node --check server/adsense.js && node --check server/revenue.js && node --check server/payments.js && node --check assets/platform.js"
   },
-  "homepage": "https://github.com/beautyoluwapelumi33-cyber/JOSH-website-and-app#readme",
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
-    "express": "^4.22.3",
-    "sql.js": "^1.16.0"
+    "express": "^4.21.2",
+    "sql.js": "^1.13.0"
   }
 }
