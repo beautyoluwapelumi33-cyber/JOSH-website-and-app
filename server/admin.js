@@ -504,14 +504,23 @@ function router() {
       if (note.length < 4) throw badRequest('note_required', 'Describe where this manual figure came from.');
       const estimated = Number(req.body?.estimated);
       if (!Number.isFinite(estimated) || estimated < 0) throw badRequest('invalid_amount', 'Enter a revenue amount of zero or more.');
+      const finalizedInput = req.body?.finalized;
+      let finalized = 0;
+      if (finalizedInput != null && finalizedInput !== '') {
+        finalized = Number(finalizedInput);
+        if (!Number.isFinite(finalized) || finalized < 0) {
+          throw badRequest('invalid_finalized', 'Finalized revenue must be zero or more.');
+        }
+      }
       const existing = db.get("SELECT * FROM ad_revenue_daily WHERE period_date = ? AND source = 'manual'", [date]);
       if (existing) throw conflict('duplicate_manual_entry', 'A manual revenue entry already exists for that date.');
       db.run(
         `INSERT INTO ad_revenue_daily (period_date, source, currency, estimated_earnings, finalized_earnings, impressions, clicks, page_views, is_manual, note, updated_at)
-         VALUES (?, 'manual', 'USD', ?, 0, ?, ?, ?, 1, ?, ?)`,
+         VALUES (?, 'manual', 'USD', ?, ?, ?, ?, ?, 1, ?, ?)`,
         [
           date,
           round(estimated),
+          round(finalized),
           Math.max(0, Number(req.body?.impressions) || 0),
           Math.max(0, Number(req.body?.clicks) || 0),
           Math.max(0, Number(req.body?.pageViews) || 0),
@@ -521,6 +530,38 @@ function router() {
       );
       audit({ actorId: req.user.id, action: 'revenue.manual', target: date, metadata: { estimated, note } });
       res.status(201).json({ ok: true, manual: true });
+    })
+  );
+
+  /* --------------------------------------------------- creator view metrics */
+  /**
+   * Verified eligible views per creator per day. These are the weights used by
+   * the 60/40 distribution, so they are recorded explicitly and audited rather
+   * than inferred from raw view counters.
+   */
+  r.post(
+    '/metrics',
+    wrap(async (req, res) => {
+      const email = String(req.body?.email || '').trim().toLowerCase();
+      const date = String(req.body?.date || '').trim();
+      const views = Number(req.body?.eligibleViews);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw badRequest('invalid_date', 'Use a date in YYYY-MM-DD format.');
+      if (!Number.isFinite(views) || views < 0) throw badRequest('invalid_views', 'Eligible views must be zero or more.');
+      const creator = db.get('SELECT id FROM users WHERE email = ?', [email]);
+      if (!creator) throw notFound('No account exists with that email.');
+      const verified = req.body?.verified === false ? 0 : 1;
+      db.run(
+        `INSERT INTO creator_metrics_daily (user_id, period_date, eligible_views, verified, source, updated_at)
+         VALUES (?, ?, ?, ?, 'admin', ?)
+         ON CONFLICT(user_id, period_date) DO UPDATE SET
+           eligible_views = excluded.eligible_views,
+           verified = excluded.verified,
+           source = 'admin',
+           updated_at = excluded.updated_at`,
+        [creator.id, date, Math.round(views), verified, nowIso()]
+      );
+      audit({ actorId: req.user.id, action: 'metrics.record', target: email, metadata: { date, views, verified } });
+      res.status(201).json({ ok: true, email, date, eligibleViews: Math.round(views), verified: Boolean(verified) });
     })
   );
 
