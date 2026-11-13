@@ -157,7 +157,7 @@ if (/data-admin-panel hidden/.test(indexHtml)) {
 } else {
   fail('Administrator panels are not gated.');
 }
-if (/fetch\('\/api\/auth\/me'/.test(indexHtml) && /role==='admin'/.test(indexHtml)) {
+if (/api\('\/api\/auth\/me'\)/.test(indexHtml) && /role==='admin'/.test(indexHtml)) {
   pass('The admin entry is only revealed for a server-confirmed admin role.');
 } else {
   fail('The admin entry is not gated by a server-side admin role check.');
