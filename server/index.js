@@ -18,6 +18,7 @@ const express = require('express');
 const db = require('./db');
 const auth = require('./auth');
 const adsense = require('./adsense');
+const siteUrl = require('./site-url');
 const { ApiError } = require('./errors');
 
 const ROOT = path.join(__dirname, '..');
@@ -80,6 +81,41 @@ function adsenseRoutes() {
   return r;
 }
 
+/**
+ * Public-address, crawler and AdSense-verification routes.
+ *
+ * Registered before the static handler so a configured production domain
+ * (PUBLIC_SITE_URL) wins over the address that ships inside the files. These
+ * routes only change URLs, crawler files and verification tags — never markup
+ * or styling.
+ */
+function siteRoutes() {
+  const r = express.Router();
+
+  // Google's AdSense crawler must be able to read the public pages.
+  r.get('/robots.txt', (req, res) =>
+    res.type('text/plain').send(siteUrl.robotsTxt(siteUrl.resolvePublicUrl(req)))
+  );
+
+  r.get('/sitemap.xml', (req, res) =>
+    res.type('application/xml').send(siteUrl.sitemapXml(siteUrl.resolvePublicUrl(req)))
+  );
+
+  // Google fetches https://<domain>/ads.txt over HTTPS before serving ads.
+  r.get('/ads.txt', (req, res) => res.type('text/plain').send(siteUrl.adsTxtBody()));
+
+  // Share links, canonical and Open Graph URLs all come from this one value.
+  r.get('/site-config.js', (req, res) =>
+    res.type('application/javascript').send(siteUrl.siteConfigJs(siteUrl.resolvePublicUrl(req)))
+  );
+
+  r.get(['/', '/index.html'], (req, res) =>
+    res.type('html').send(siteUrl.renderIndex(siteUrl.resolvePublicUrl(req)))
+  );
+
+  return r;
+}
+
 async function createApp() {
   await db.open(DATA_FILE);
 
@@ -100,9 +136,14 @@ async function createApp() {
     res.status(404).json({ error: { code: 'not_found', message: 'Unknown API route.' } })
   );
 
+  // Domain-aware crawler files, ads.txt, site config and the HTML entry point.
+  app.use(siteRoutes());
+
   // The existing website, served unchanged.
   app.use(express.static(ROOT, { extensions: ['html'], index: 'index.html', dotfiles: 'ignore', maxAge: 0 }));
-  app.get('*', (req, res) => res.sendFile(path.join(ROOT, 'index.html')));
+  app.get('*', (req, res) =>
+    res.type('html').send(siteUrl.renderIndex(siteUrl.resolvePublicUrl(req)))
+  );
 
   app.use((err, req, res, _next) => {
     const known = err instanceof ApiError;
