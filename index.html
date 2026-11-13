@@ -5,6 +5,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JOSH - Watch. Create. Earn.</title>
+<!-- Official published website address. Sharing, canonical and social metadata
+     all use this link (see site-config.js), never a preview or localhost URL. -->
+<link rel="canonical" href="https://wypeqn7rsc.dev.onappjet.com/">
+<meta name="description" content="JOSH — watch, create and earn from your videos. Share the official JOSH website link.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="JOSH">
+<meta property="og:title" content="JOSH - Watch. Create. Earn.">
+<meta property="og:description" content="Watch, create and earn from your videos on JOSH.">
+<meta property="og:url" content="https://wypeqn7rsc.dev.onappjet.com/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JOSH - Watch. Create. Earn.">
+<meta name="twitter:description" content="Watch, create and earn from your videos on JOSH.">
+<meta name="twitter:url" content="https://wypeqn7rsc.dev.onappjet.com/">
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#0e1015;color:white;font-family:Arial,sans-serif}
@@ -42,6 +55,22 @@ video{width:100%;max-height:400px;background:black;border-radius:10px}
 @media(min-width:900px){.watch-layout{grid-template-columns:minmax(0,1fr) 300px}}
 @media(max-width:899px){.ad-slot[data-ad-slot="videoSidebar"]{display:none!important}}
 .hidden{display:none!important}
+.header-actions{display:flex;gap:8px;flex:0 0 auto}
+/* Share JOSH dialog */
+.share-backdrop{position:fixed;inset:0;background:rgba(6,8,12,.74);display:flex;align-items:center;justify-content:center;padding:16px;z-index:40}
+.share-dialog{background:#171a22;border:1px solid #343947;border-radius:16px;width:100%;max-width:430px;padding:20px;position:relative;max-height:92vh;overflow-y:auto}
+.share-dialog h3{margin:0 0 4px;font-size:20px}
+.share-url{display:flex;gap:8px;margin:14px 0;align-items:stretch}
+.share-url input{flex:1 1 auto;min-width:0;margin:0;font-size:12px}
+.share-url button{flex:0 0 auto}
+.share-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.share-target{display:flex;align-items:center;gap:10px;background:#252b38;color:white;text-align:left;padding:12px}
+.share-target[disabled]{opacity:.45;cursor:not-allowed}
+.share-target .ico{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;background:#343b57;flex:0 0 auto}
+.share-close{position:absolute;top:10px;right:10px;background:#252b38;color:white;padding:8px 12px}
+.share-note{font-size:12px;color:#9ba2b2;margin:12px 0 0}
+.share-status{font-size:13px;color:#7ee0a8;min-height:18px;margin:10px 0 0}
+@media(max-width:480px){.share-grid{grid-template-columns:1fr}}
 footer{text-align:center;padding:30px;color:#9299a8}
 a{color:#ff6680}
 </style>
@@ -53,6 +82,8 @@ a{color:#ff6680}
      After your site is approved you may also add these with your own client ID:
      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
      <meta name="google-adsense-account" content="ca-pub-XXXXXXXXXXXXXXXX"> -->
+<script src="site-config.js"></script>
+<script src="share.js"></script>
 <script src="adsense-config.js"></script>
 <script src="adsense.js"></script>
 </head>
@@ -60,7 +91,10 @@ a{color:#ff6680}
 
 <header>
  <div class="logo">▶ JOSH<span></span></div>
- <button class="primary" onclick="showPage('upload')">+ Create</button>
+ <div class="header-actions">
+  <button class="secondary" id="shareJoshBtn" type="button" onclick="openShareDialog()">Share JOSH</button>
+  <button class="primary" onclick="showPage('upload')">+ Create</button>
+ </div>
 </header>
 
 <nav>
@@ -69,7 +103,8 @@ a{color:#ff6680}
  <button onclick="showPage('upload',this)">Upload</button>
  <button onclick="showPage('creator',this)">Creator Studio</button>
  <button onclick="showPage('wallet',this)">My Earnings</button>
- <button onclick="showPage('admin',this)">Admin</button>
+ <!-- Admin entry is hidden on the public website; see the admin gate script. -->
+ <button class="hidden" data-admin-entry onclick="showPage('admin',this)">Admin</button>
 </nav>
 
 <main>
