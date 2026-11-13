@@ -56,7 +56,9 @@ const sellerLines = (value) =>
 async function main() {
   clearEnv();
   const app = await createApp();
-  const server = app.listen(0, '127.0.0.1');
+  // Bind on all interfaces: platform preflight (correctly) rejects a server that
+  // only listens on loopback. This is a throwaway local test server.
+  const server = app.listen(0, '0.0.0.0');
   await once(server, 'listening');
   const { port } = server.address();
   const local = `http://127.0.0.1:${port}`;
