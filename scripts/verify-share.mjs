@@ -147,34 +147,55 @@ if (canonicalHref && canonicalHref !== ogUrl) {
 }
 
 // 5. Admin stays private.
-if (/<button data-admin-entry onclick="showPage\('admin',this\)">Admin<\/button>/.test(indexHtml)) {
-  pass('The Admin entry is back in the original navigation, as before.');
+if (/<button[^>]*data-admin-entry[^>]*onclick="showPage\('admin',this\)"[\s\S]{0,400}?Admin<\/button>/.test(indexHtml)) {
+  pass('The Admin entry sits in the YouTube-style sidebar navigation.');
 } else {
-  fail('The Admin navigation entry does not match the original navigation.');
+  fail('The Admin navigation entry is missing from the sidebar.');
 }
-/* Design preservation: YouTube-style layout tokens plus the white light theme. */
+/* YouTube homepage layout tokens plus the white light theme. */
 [
   ['body{margin:0;background:#ffffff;color:#0f0f0f;font-family:Arial,sans-serif}', 'the white light theme, Arial font and dark text colours are in place'],
-  ['header{height:65px;background:#ffffff', 'the original 65px header is unchanged, now on a white surface'],
-  ['.logo{font-size:27px;font-weight:900;color:#ff3155}', 'the original logo typography and colour are unchanged'],
-  ['.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}', 'the original video feed grid is unchanged'],
-  ['.thumb{height:145px;background:linear-gradient(135deg,#eef1f7,#f9dde5)', 'the original 145px video thumbnails are unchanged in the light palette'],
-  ['.primary{background:#ff3155;color:white}', 'the original button styling is unchanged'],
-  ['nav button.active{background:#ff3155;color:#ffffff}', 'the original navigation styling is unchanged'],
-  ['main{padding:16px;max-width:1100px;margin:auto}', 'the original page spacing and width are unchanged'],
-  ['nav{display:flex;gap:8px;overflow-x:auto;background:#ffffff', 'the navigation bar is white with the original layout'],
-  ['.panel{background:#ffffff;border:1px solid #e5e5e5', 'panels and the sidebar are white with light grey borders'],
-  ['.card{background:#ffffff;border:1px solid #e5e5e5', 'video cards are white with light grey borders'],
-  ['.search{width:100%;padding:14px;border-radius:10px;border:1px solid #d9d9d9;background:#ffffff;color:#0f0f0f', 'the search bar keeps its layout on a white surface'],
+  ['header.yt-topbar{height:56px;background:#ffffff', 'the YouTube 56px white app bar is in place'],
+  ['.logo{font-size:27px;font-weight:900;color:#ff3155}', 'the JOSH logo typography and colour are unchanged'],
+  ['.yt-feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))', 'the YouTube-style video grid is in place'],
+  ['.yt-thumb{position:relative;aspect-ratio:16/9', 'video thumbnails use YouTube-style 16:9 cards'],
+  ['.primary{background:#ff3155;color:white}', 'the JOSH button styling is unchanged'],
+  ['.yt-chip.active{background:#0f0f0f;color:#ffffff}', 'the YouTube category chip row is styled'],
+  ['@media(min-width:1000px){.yt-body{grid-template-columns:240px minmax(0,1fr)}', 'the desktop 240px sidebar rail is in place'],
+  ['.panel{background:#ffffff;border:1px solid #e5e5e5', 'panels are white with light grey borders'],
   ['input,textarea,select{background:#ffffff;border:1px solid #d9d9d9;color:#0f0f0f', 'form fields use white surfaces with dark text'],
   ['.watch-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}', 'the video player page layout is unchanged'],
   ['@media(min-width:900px){.watch-layout{grid-template-columns:minmax(0,1fr) 300px}}', 'the responsive 300px watch sidebar is unchanged'],
   ['@media(max-width:899px){.ad-slot[data-ad-slot="videoSidebar"]{display:none!important}}', 'mobile ad behaviour is unchanged'],
   ['footer{text-align:center;padding:30px;color:#606060;border-top:1px solid #e5e5e5;background:#ffffff}', 'the footer uses a white surface with a light grey separator']
 ].forEach(function(pair){
-  if (indexHtml.indexOf(pair[0]) !== -1) pass('Design preserved: ' + pair[1] + '.');
-  else fail('Design changed: ' + pair[1] + '.');
+  if (indexHtml.indexOf(pair[0]) !== -1) pass('Design ok: ' + pair[1] + '.');
+  else fail('Design missing: ' + pair[1] + '.');
 });
+
+/* The YouTube top bar search must keep driving the feed filter. */
+if (/id="search"[^>]*oninput="searchVideos\(\)"/.test(indexHtml)) {
+  pass('The top-bar search still filters the video feed.');
+} else {
+  fail('The top-bar search is not wired to the feed.');
+}
+if (/class="yt-chip active"/.test(indexHtml) && /function filterChip\(/.test(indexHtml)) {
+  pass('The category chip row filters the feed.');
+} else {
+  fail('The category chip row is not wired to the feed.');
+}
+
+/* Advertisements must stay outside the navigation and the video controls. */
+const navBlock = (/<aside class="yt-nav"[\s\S]*?<\/aside>/.exec(indexHtml) || [''])[0];
+if (navBlock && navBlock.indexOf('ad-slot') === -1) {
+  pass('No advertisement sits inside the sidebar navigation.');
+} else {
+  fail('An advertisement was placed inside the sidebar navigation.');
+}
+for (const slot of ['homeTop', 'homeFeed', 'videoBelowPlayer', 'videoSidebar', 'liveTop']) {
+  if (new RegExp('data-ad-slot="' + slot + '"').test(indexHtml)) pass('Ad slot "' + slot + '" is still present.');
+  else fail('Ad slot "' + slot + '" is missing.');
+}
 
 /* No dark-theme surfaces may survive anywhere in the page. */
 const darkTokens = ['#0e1015', '#171a22', '#1b1f29', '#20242e', '#252b38', '#292e39', '#343b57', '#343947', '#393e4a', '#444b5b', '#8c315a'];
@@ -196,8 +217,12 @@ if (indexHtml.indexOf('▶ JOSH') === -1) pass('The old text logo has been repla
 else fail('The old text logo is still present.');
 if (/rel="icon" type="image\/svg\+xml"/.test(indexHtml)) pass('The JOSH favicon uses the new logo mark.');
 else fail('The JOSH favicon is missing.');
-if (/<section id="home">/.test(indexHtml) && /id="videos"/.test(indexHtml)) pass('The original homepage and video feed sections are intact.');
-else fail('The original homepage or video feed section is missing.');
+if (/<section id="home">/.test(indexHtml) && /id="videos"/.test(indexHtml)) pass('The homepage and video feed sections are intact.');
+else fail('The homepage or video feed section is missing.');
+if (/<aside class="yt-nav"/.test(indexHtml) && /id="ytMenuBtn"/.test(indexHtml)) pass('The homepage carries the YouTube sidebar and its hamburger toggle.');
+else fail('The YouTube sidebar or its hamburger toggle is missing.');
+if (/class="yt-card"/.test(indexHtml) && /class="yt-avatar"/.test(indexHtml)) pass('Feed cards use the YouTube thumbnail, avatar and title layout.');
+else fail('Feed cards are missing the YouTube layout.');
 
 if (/data-admin-panel hidden/.test(indexHtml)) {
   pass('Administrator panels stay locked until an admin session is confirmed.');
