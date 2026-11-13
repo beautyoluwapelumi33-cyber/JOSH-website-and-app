@@ -31,10 +31,30 @@ h2{font-size:21px}
 .stat strong{display:block;font-size:23px;color:#ff5270;margin-top:8px}
 input,textarea,select{background:#252b38;border:1px solid #444b5b;color:white;border-radius:8px;padding:12px;width:100%;margin:7px 0}
 video{width:100%;max-height:400px;background:black;border-radius:10px}
+/* AdSense placements: own blocks, never inside video controls or navigation. */
+.ad-slot{margin:20px 0;text-align:center}
+.ad-label{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#6f7788;margin-bottom:8px}
+.ad-slot ins{display:block;width:100%}
+.watch-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+.player-shell{margin:0 0 8px}
+.watch-video{width:100%;max-height:420px;background:black;border-radius:10px}
+.watch-back{margin-bottom:12px}
+@media(min-width:900px){.watch-layout{grid-template-columns:minmax(0,1fr) 300px}}
+@media(max-width:899px){.ad-slot[data-ad-slot="videoSidebar"]{display:none!important}}
 .hidden{display:none!important}
 footer{text-align:center;padding:30px;color:#9299a8}
 a{color:#ff6680}
 </style>
+<!-- Google AdSense (website only — no AdMob SDK).
+     adsense.js inserts the official AdSense tag into this <head>, and only when a
+     real publisher ID is configured in adsense-config.js. While that config is
+     empty nothing is requested from Google, so no placeholder credentials are
+     ever used and no empty ad boxes appear.
+     After your site is approved you may also add these with your own client ID:
+     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+     <meta name="google-adsense-account" content="ca-pub-XXXXXXXXXXXXXXXX"> -->
+<script src="adsense-config.js"></script>
+<script src="adsense.js"></script>
 </head>
 <body>
 
@@ -58,6 +78,8 @@ a{color:#ff6680}
  <h2>Welcome to JOSH 👋</h2>
  <p class="muted">Watch. Create. Share. Grow.</p>
  <input class="search" id="search" placeholder="Search videos..." oninput="searchVideos()">
+ <!-- Homepage ad: above the video feed, outside the search and navigation controls. -->
+ <div class="ad-slot" data-ad-slot="homeTop" hidden><span class="ad-label">Advertisement</span></div>
  <h2>Discover Videos</h2>
  <div class="grid" id="videos">
   <div class="card">
@@ -65,7 +87,7 @@ a{color:#ff6680}
    <div class="card-content">
     <b>Welcome to JOSH</b>
     <p class="muted">JOSH Official · Sample video</p>
-    <button class="primary" onclick="alert('Upload a video to start watching your own content.')">Watch</button>
+    <button class="primary" onclick="openWatch('Welcome to JOSH','','JOSH Official · Sample video. No video file is attached to this sample card yet.')">Watch</button>
    </div>
   </div>
   <div class="card">
@@ -73,9 +95,36 @@ a{color:#ff6680}
    <div class="card-content">
     <b>Discover Amazing Stories</b>
     <p class="muted">Featured content · Demo</p>
-    <button class="primary" onclick="alert('This is a sample video card.')">Watch</button>
+    <button class="primary" onclick="openWatch('Discover Amazing Stories','','Featured content · Demo card. No video file is attached to this sample card yet.')">Watch</button>
    </div>
   </div>
+ </div>
+ <!-- Homepage ad: after the video feed. -->
+ <div class="ad-slot" data-ad-slot="homeFeed" hidden><span class="ad-label">Advertisement</span></div>
+</section>
+
+<section id="watch" class="hidden">
+ <button class="secondary watch-back" onclick="showPage('home',document.querySelector('nav button'))">← Back to Home</button>
+ <div class="watch-layout">
+  <div>
+   <h2 id="watchTitle">Now playing</h2>
+   <p class="muted" id="watchMeta">JOSH</p>
+   <div class="player-shell" id="watchPlayer"></div>
+   <!-- Video page ad: below the player, fully separate from the video controls. -->
+   <div class="ad-slot" data-ad-slot="videoBelowPlayer" hidden><span class="ad-label">Advertisement</span></div>
+   <div class="panel">
+    <h3>About this video</h3>
+    <p class="muted" id="watchDescription">No description yet.</p>
+   </div>
+  </div>
+  <aside class="watch-side">
+   <!-- Video page ad: sidebar, hidden on small screens so it never crowds the player. -->
+   <div class="ad-slot" data-ad-slot="videoSidebar" hidden><span class="ad-label">Advertisement</span></div>
+   <div class="panel">
+    <h3>Up next</h3>
+    <p class="muted">More videos from JOSH will appear here.</p>
+   </div>
+  </aside>
  </div>
 </section>
 
@@ -96,6 +145,8 @@ a{color:#ff6680}
 
 <section id="live" class="hidden">
  <h2>JOSH Live</h2>
+ <!-- Live page ad: above the panels, away from any player or navigation. -->
+ <div class="ad-slot" data-ad-slot="liveTop" hidden><span class="ad-label">Advertisement</span></div>
  <div class="panel">
   <h3>Go Live</h3>
   <p class="muted">Livestreaming will require a connected streaming server and creator authorization.</p>
@@ -190,6 +241,29 @@ function showPage(id,btn){
  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
  if(btn)btn.classList.add('active');
  window.scrollTo(0,0);
+ document.dispatchEvent(new CustomEvent('josh:page',{detail:{id:id}}));
+}
+
+function openWatch(title,src,description){
+ document.getElementById('watchTitle').textContent=title||'Now playing';
+ document.getElementById('watchMeta').textContent='JOSH · Video';
+ document.getElementById('watchDescription').textContent=description||'No description provided for this video yet.';
+ const shell=document.getElementById('watchPlayer');
+ shell.innerHTML='';
+ if(src){
+  const player=document.createElement('video');
+  player.controls=true;
+  player.className='watch-video';
+  player.src=src;
+  shell.appendChild(player);
+ }else{
+  const art=document.createElement('div');
+  art.className='thumb';
+  art.style.height='220px';
+  art.textContent='🎬';
+  shell.appendChild(art);
+ }
+ showPage('watch',document.querySelector('nav button'));
 }
 
 function uploadVideo(){
@@ -200,8 +274,9 @@ function uploadVideo(){
  const url=URL.createObjectURL(file);
  const card=document.createElement('div');
  card.className='card';
- card.innerHTML='<div class="card-content"><b></b><p class="muted">Your local video preview</p></div>';
+ card.innerHTML='<div class="card-content"><b></b><p class="muted">Your local video preview</p><button class="primary" type="button">Open video page</button></div>';
  card.querySelector('b').textContent=title;
+ card.querySelector('button').onclick=()=>openWatch(title,url,'Your uploaded video preview (this browser session only).');
  const player=document.createElement('video');
  player.controls=true;
  player.src=url;
