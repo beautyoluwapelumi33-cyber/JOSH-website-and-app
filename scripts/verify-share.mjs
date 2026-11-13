@@ -6,7 +6,7 @@
  *  - a preview/localhost address can never be used as the shared link;
  *  - every share target builds a real provider URL containing that link;
  *  - index.html carries the canonical/social metadata and the share dialog;
- *  - the admin entry stays hidden from the public page.
+ *  - the Admin navigation entry is restored while the dashboard stays gated.
  *
  * Run with: node scripts/verify-share.mjs
  */
@@ -147,18 +147,43 @@ if (canonicalHref && canonicalHref !== ogUrl) {
 }
 
 // 5. Admin stays private.
-if (/<button class="hidden" data-admin-entry/.test(indexHtml)) {
-  pass('The admin entry is hidden from the public navigation.');
+if (/<button data-admin-entry onclick="showPage\('admin',this\)">Admin<\/button>/.test(indexHtml)) {
+  pass('The Admin entry is back in the original navigation, as before.');
 } else {
-  fail('The admin entry is still visible to every visitor.');
+  fail('The Admin navigation entry does not match the original navigation.');
 }
+/* Design preservation: the original YouTube-style tokens must stay untouched. */
+[
+  ['body{margin:0;background:#0e1015;color:white;font-family:Arial,sans-serif}', 'the original dark theme, Arial font and text colours are unchanged'],
+  ['header{height:65px;background:#171a22', 'the original 65px header is unchanged'],
+  ['.logo{font-size:27px;font-weight:900;color:#ff3155}', 'the original logo typography and colour are unchanged'],
+  ['.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}', 'the original video feed grid is unchanged'],
+  ['.thumb{height:145px;background:linear-gradient(135deg,#343b57,#8c315a)', 'the original video thumbnails are unchanged'],
+  ['.primary{background:#ff3155;color:white}', 'the original button styling is unchanged'],
+  ['nav button.active{background:#ff3155}', 'the original navigation styling is unchanged'],
+  ['main{padding:16px;max-width:1100px;margin:auto}', 'the original page spacing and width are unchanged']
+].forEach(function(pair){
+  if (indexHtml.indexOf(pair[0]) !== -1) pass('Design preserved: ' + pair[1] + '.');
+  else fail('Design changed: ' + pair[1] + '.');
+});
+
+/* Logo: the single authorised visual change. */
+if ((indexHtml.match(/class="josh-mark"/g) || []).length >= 2) pass('The new JOSH logo mark is applied in the header and footer.');
+else fail('The new JOSH logo mark is missing from the header or footer.');
+if (indexHtml.indexOf('▶ JOSH') === -1) pass('The old text logo has been replaced by the new logo.');
+else fail('The old text logo is still present.');
+if (/rel="icon" type="image\/svg\+xml"/.test(indexHtml)) pass('The JOSH favicon uses the new logo mark.');
+else fail('The JOSH favicon is missing.');
+if (/<section id="home">/.test(indexHtml) && /id="videos"/.test(indexHtml)) pass('The original homepage and video feed sections are intact.');
+else fail('The original homepage or video feed section is missing.');
+
 if (/data-admin-panel hidden/.test(indexHtml)) {
   pass('Administrator panels stay locked until an admin session is confirmed.');
 } else {
   fail('Administrator panels are not gated.');
 }
 if (/api\('\/api\/auth\/me'\)/.test(indexHtml) && /role==='admin'/.test(indexHtml)) {
-  pass('The admin entry is only revealed for a server-confirmed admin role.');
+  pass('The admin dashboard is only unlocked for a server-confirmed admin role.');
 } else {
   fail('The admin entry is not gated by a server-side admin role check.');
 }
